@@ -1,0 +1,21 @@
+# Sistema
+.DS_Store
+
+# App móvil antigua archivada (no forma parte del sistema activo)
+_archive/
+
+# Logs y estado de túneles
+logs/*.log
+scripts/estado_tunel_*.txt
+
+# Backups SQL locales (se generan con mysqldump)
+db_backup_*.sql
+
+# Laravel (backend) — complementa backend/.gitignore
+backend/vendor/
+backend/node_modules/
+backend/storage/app/public/
+backend/storage/logs/
+backend/storage/framework/cache/data/
+backend/storage/framework/sessions/
+backend/storage/framework/views/
