@@ -16,3 +16,4 @@
 - 2026-07-11 09:10 — Ajustes en la lógica de reciclaje
 - 2026-07-11 19:31 — Ajustes en la lógica de reciclaje
 - 2026-07-13 19:44 — Ajustes en scripts de automatización
+- 2026-07-14 09:44 — Mejoras menores en la interfaz
