@@ -33,3 +33,4 @@
 - 2026-07-26 08:32 — Avance en módulos del sistema
 - 2026-07-26 14:33 — Actualización de recursos del proyecto
 - 2026-07-28 10:56 — Avance en módulos del sistema
+- 2026-07-28 18:31 — Ajustes en la lógica de reciclaje
