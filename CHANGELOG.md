@@ -39,3 +39,4 @@
 - 2026-07-30 13:32 — Actualización de recursos del proyecto
 - 2026-07-30 15:39 — Actualización de configuración
 - 2026-07-30 18:18 — Actualización de documentación
+- 2026-07-31 09:08 — Corrección de detalles del frontend
