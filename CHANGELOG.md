@@ -15,3 +15,8 @@
 - 2026-07-10 18:12 — Ajustes en la lógica de reciclaje
 - 2026-07-11 09:10 — Ajustes en la lógica de reciclaje
 - 2026-07-11 19:31 — Ajustes en la lógica de reciclaje
+- 2026-07-13 19:44 — Ajustes en scripts de automatización
+- 2026-07-14 09:44 — Mejoras menores en la interfaz
+- 2026-07-14 13:46 — Actualización de recursos del proyecto
+- 2026-07-14 19:28 — Actualización de documentación
+- 2026-07-15 08:15 — Avance en módulos del sistema
