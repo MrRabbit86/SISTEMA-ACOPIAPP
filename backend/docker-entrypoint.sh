@@ -8,7 +8,17 @@ export PORT="${PORT:-8080}"
 a2dismod mpm_event mpm_worker >/dev/null 2>&1 || true
 a2enmod mpm_prefork >/dev/null 2>&1 || true
 printf 'Listen %s\n' "$PORT" > /etc/apache2/ports.conf
-sed -i "s/<VirtualHost \*:[0-9${}A-Za-z_]*>/<VirtualHost *:${PORT}>/" /etc/apache2/sites-available/000-default.conf
+cat > /etc/apache2/sites-available/000-default.conf <<EOF
+<VirtualHost *:${PORT}>
+    DocumentRoot /var/www/html/public
+    <Directory /var/www/html/public>
+        AllowOverride All
+        Require all granted
+    </Directory>
+    ErrorLog \${APACHE_LOG_DIR}/error.log
+    CustomLog \${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+EOF
 
 mkdir -p \
     storage/app/public/ofertas \
