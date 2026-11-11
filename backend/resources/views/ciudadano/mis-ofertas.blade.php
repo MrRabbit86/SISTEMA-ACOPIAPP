@@ -153,6 +153,22 @@
                             <td class="px-4 py-3 text-gray-500">{{ $oferta->fecha_publicacion?->format('d/m/Y H:i') }}</td>
                             <td class="px-4 py-3">
                                 <x-estado-badge :estado="$oferta->estado->value" :label="$oferta->estado->label()" />
+                                @if (in_array($oferta->estado->value, ['pendiente', 'en_proceso'], true) && $oferta->codigo_confirmacion)
+                                    <p class="mt-1 text-xs text-gray-700">
+                                        Código entrega: <span class="rounded bg-emerald-100 px-1.5 py-0.5 font-mono font-bold text-emerald-900">{{ $oferta->codigo_confirmacion }}</span>
+                                    </p>
+                                @endif
+                                @if ($oferta->estado->value === 'en_proceso' && $oferta->empresaReservada)
+                                    <p class="mt-1 text-xs text-blue-700">
+                                        En camino: {{ $oferta->empresaReservada->name }}
+                                        @if ($oferta->empresaReservada->telefono)
+                                            · Tel: {{ $oferta->empresaReservada->telefono }}
+                                        @endif
+                                    </p>
+                                @endif
+                                @if ($oferta->estado->value === 'cancelada' && $oferta->motivo_cierre)
+                                    <p class="mt-1 text-xs text-red-600">{{ $oferta->motivo_cierre }}</p>
+                                @endif
                             </td>
                             <td class="px-4 py-3 text-right">
                                 @if (in_array($oferta->estado->value, ['pendiente', 'en_proceso']))

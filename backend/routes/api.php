@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoriaController;
 use App\Http\Controllers\Api\ComprobanteController;
+use App\Http\Controllers\Api\NotificacionController;
 use App\Http\Controllers\Api\OfertaController;
 use App\Http\Controllers\Api\ReporteController;
 use App\Http\Controllers\Api\TransaccionController;
@@ -27,6 +28,11 @@ Route::middleware(['auth:sanctum', 'aprobado'])->group(function () {
         ->only(['index', 'show', 'store'])
         ->names('api.ofertas');
     Route::post('/ofertas/{oferta}/cancelar', [OfertaController::class, 'cancelar']);
+    Route::post('/ofertas/{oferta}/reservar', [OfertaController::class, 'reservar']);
+    Route::post('/ofertas/{oferta}/liberar', [OfertaController::class, 'liberar']);
+
+    Route::get('/notificaciones', [NotificacionController::class, 'index']);
+    Route::post('/notificaciones/leer-todas', [NotificacionController::class, 'leerTodas']);
 });
 
 Route::middleware(['auth:sanctum', 'aprobado'])->group(function () {

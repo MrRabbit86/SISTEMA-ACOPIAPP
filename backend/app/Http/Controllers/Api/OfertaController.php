@@ -11,18 +11,33 @@ use App\Services\OfertaService;
 use App\Support\Geolocalizacion;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class OfertaController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        Oferta::liberarReservasExpiradas();
+
+        $user = $request->user();
         $query = Oferta::query()
-            ->with(['ciudadano.usuario', 'categoria'])
+            ->with(['ciudadano.usuario', 'categoria', 'empresaReservada'])
             ->latest('fecha_publicacion');
 
         if ($request->filled('estado')) {
             $query->where('estado', $request->string('estado'));
+        } elseif ($user?->esEmpresa()) {
+            $query->where(function ($q) use ($user) {
+                $q->where('estado', EstadoOferta::PENDIENTE->value)
+                    ->orWhere(function ($sub) use ($user) {
+                        $sub->where('estado', EstadoOferta::EN_PROCESO->value)
+                            ->where(function ($inner) use ($user) {
+                                $inner->whereNull('empresa_reservada_id')
+                                    ->orWhere('empresa_reservada_id', $user->id);
+                            });
+                    });
+            });
         } else {
             $query->whereIn('estado', [
                 EstadoOferta::PENDIENTE->value,
@@ -83,10 +98,55 @@ class OfertaController extends Controller
 
     public function show(Oferta $oferta): JsonResponse
     {
-        $oferta->load(['ciudadano.usuario', 'categoria']);
+        Oferta::liberarReservasExpiradas();
+        $oferta->refresh()->load(['ciudadano.usuario', 'categoria', 'empresaReservada']);
 
         return response()->json([
             'data' => new OfertaResource($oferta),
+        ]);
+    }
+
+    public function reservar(Oferta $oferta, Request $request): JsonResponse
+    {
+        abort_unless($request->user()?->esEmpresa(), 403,
+            'Solo las empresas acopiadoras pueden reservar ofertas.');
+
+        $resultado = (new OfertaService())->reservar($request->user(), $oferta);
+
+        if ($resultado->mal()) {
+            return response()->json(['message' => $resultado->mensaje()], 422);
+        }
+
+        return response()->json([
+            'message' => 'Oferta reservada correctamente por 2 horas.',
+            'data' => new OfertaResource($resultado->valor()->load(['ciudadano.usuario', 'categoria', 'empresaReservada'])),
+        ]);
+    }
+
+    public function liberar(Oferta $oferta, Request $request): JsonResponse
+    {
+        abort_unless($request->user()?->esEmpresa(), 403,
+            'Solo las empresas acopiadoras pueden liberar ofertas.');
+
+        $validated = $request->validate([
+            'motivo' => ['required', Rule::in(array_keys(OfertaService::MOTIVOS_LIBERACION))],
+            'nota' => ['nullable', 'string', 'max:200'],
+        ]);
+
+        $resultado = (new OfertaService())->liberar(
+            $request->user(),
+            $oferta,
+            $validated['motivo'],
+            $validated['nota'] ?? null,
+        );
+
+        if ($resultado->mal()) {
+            return response()->json(['message' => $resultado->mensaje()], 422);
+        }
+
+        return response()->json([
+            'message' => 'Estado de la oferta actualizado.',
+            'data' => new OfertaResource($resultado->valor()->load(['ciudadano.usuario', 'categoria', 'empresaReservada'])),
         ]);
     }
 
@@ -112,13 +172,14 @@ class OfertaController extends Controller
 
     public function mias(Request $request): JsonResponse
     {
+        Oferta::liberarReservasExpiradas();
         $user = $request->user();
 
         abort_unless($user->esCiudadano() && $user->ciudadano, 403,
             'Solo los ciudadanos pueden consultar sus ofertas.');
 
         $ofertas = Oferta::query()
-            ->with(['ciudadano.usuario', 'categoria'])
+            ->with(['ciudadano.usuario', 'categoria', 'empresaReservada'])
             ->where('ciudadano_id', $user->ciudadano->id)
             ->latest('fecha_publicacion')
             ->get();

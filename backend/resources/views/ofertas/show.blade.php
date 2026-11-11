@@ -86,7 +86,85 @@
     </div>
 
     @if (auth()->user()?->esEmpresa())
-        @if (in_array($oferta->estado->value, ['pendiente', 'en_proceso'], true))
+        @if ($errors->has('estado'))
+            <div class="mt-6 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
+                {{ $errors->first('estado') }}
+            </div>
+        @endif
+
+        @php
+            $reservadaPorOtro = $oferta->estado->value === 'en_proceso'
+                && $oferta->empresa_reservada_id !== null
+                && $oferta->empresa_reservada_id !== auth()->id();
+            $reservadaPorMi = $oferta->estado->value === 'en_proceso'
+                && $oferta->empresa_reservada_id === auth()->id();
+        @endphp
+
+        @if ($reservadaPorOtro)
+            <div class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-6">
+                <h2 class="text-sm font-semibold uppercase tracking-wide text-amber-800">Oferta reservada por otra empresa</h2>
+                <p class="mt-2 text-sm text-amber-900">
+                    Otra empresa acopiadora reservó este recojo y se encuentra en camino
+                    @if ($oferta->reservada_hasta)
+                        (reserva vigente hasta las <strong>{{ $oferta->reservada_hasta->format('H:i') }}</strong>).
+                    @endif
+                    Si no concreta la compra, la oferta volverá a quedar disponible automáticamente.
+                </p>
+            </div>
+        @elseif (in_array($oferta->estado->value, ['pendiente', 'en_proceso'], true))
+            @if ($oferta->estado->value === 'pendiente')
+                <div class="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-emerald-200 bg-emerald-50 p-5">
+                    <div>
+                        <h2 class="text-sm font-semibold text-emerald-900">¿Vas en camino a recoger este material?</h2>
+                        <p class="mt-1 text-xs text-emerald-800">
+                            Reserva la oferta por 2 horas para que otras empresas no dupliquen el viaje mientras te trasladas.
+                        </p>
+                    </div>
+                    <form method="POST" action="{{ route('ofertas.reservar', $oferta) }}">
+                        @csrf
+                        <button type="submit"
+                                class="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800">
+                            Reservar recojo (Voy en camino)
+                        </button>
+                    </form>
+                </div>
+            @elseif ($reservadaPorMi)
+                <div class="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h2 class="text-sm font-semibold text-blue-900">Tienes reservado este recojo</h2>
+                            <p class="mt-1 text-xs text-blue-800">
+                                Vigente hasta {{ $oferta->reservada_hasta?->format('d/m/Y H:i') }}.
+                                Pide al ciudadano el código de entrega de 4 dígitos al pesar el material para registrar la compra.
+                            </p>
+                        </div>
+                    </div>
+                    <form method="POST" action="{{ route('ofertas.liberar', $oferta) }}"
+                          class="mt-4 flex flex-wrap items-end gap-3 border-t border-blue-200 pt-4">
+                        @csrf
+                        <div>
+                            <label for="motivo" class="mb-1 block text-xs font-medium text-blue-900">Si no se concretó el recojo</label>
+                            <select name="motivo" id="motivo" required
+                                    class="rounded-md border-blue-300 bg-white text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @foreach ($motivosLiberacion as $valor => $etiqueta)
+                                    <option value="{{ $valor }}">{{ $etiqueta }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="min-w-[200px] flex-1">
+                            <label for="nota" class="mb-1 block text-xs font-medium text-blue-900">Observación (opcional)</label>
+                            <input type="text" name="nota" id="nota" maxlength="200"
+                                   placeholder="Ej: No hubo acuerdo en el precio / domicilio cerrado"
+                                   class="w-full rounded-md border-blue-300 bg-white text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <button type="submit"
+                                class="rounded-md border border-blue-300 bg-white px-3 py-2 text-xs font-medium text-blue-900 hover:bg-blue-100">
+                            Liberar / Reportar
+                        </button>
+                    </form>
+                </div>
+            @endif
+
             <div class="mt-6 rounded-lg bg-white p-6 shadow ring-1 ring-gray-200">
                 <h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">Registrar compra</h2>
                 <p class="mb-4 text-sm text-gray-600">
@@ -100,6 +178,7 @@
                     <div>
                         <label for="peso_real_kg" class="mb-1 block text-sm font-medium text-gray-700">Peso real (kg)</label>
                         <input type="text" inputmode="decimal" required name="peso_real_kg" id="peso_real_kg"
+                               value="{{ old('peso_real_kg') }}"
                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                placeholder="Ej: 45.50" data-compras-peso>
                         @error('peso_real_kg') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -109,10 +188,28 @@
                             Precio acordado Bs/kg <span class="text-xs text-gray-400">(opcional)</span>
                         </label>
                         <input type="text" inputmode="decimal" name="precio_acordado_kg" id="precio_acordado_kg"
+                               value="{{ old('precio_acordado_kg') }}"
                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                placeholder="Bs {{ number_format((float) $oferta->obtenerPrecioReferencia(), 2) }}"
                                data-compras-precio>
                         @error('precio_acordado_kg') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="rounded-md bg-gray-50 p-3 ring-1 ring-gray-200">
+                        <label for="codigo_confirmacion" class="mb-1 block text-sm font-medium text-gray-700">
+                            Código de entrega del ciudadano (4 dígitos)
+                        </label>
+                        <input type="text" inputmode="numeric" maxlength="4" pattern="\d{4}"
+                               name="codigo_confirmacion" id="codigo_confirmacion"
+                               value="{{ old('codigo_confirmacion') }}" required
+                               class="w-40 rounded-md border-gray-300 font-mono text-base tracking-widest shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                               placeholder="Ej: 4821">
+                        @error('codigo_confirmacion') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        <label class="mt-2 flex items-center gap-2 text-xs text-gray-600">
+                            <input type="checkbox" name="sin_codigo_presencial" id="sin_codigo_presencial" value="1"
+                                   class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                   {{ old('sin_codigo_presencial') ? 'checked' : '' }}>
+                            <span>El ciudadano no tiene su código a mano (registro directo en sitio)</span>
+                        </label>
                     </div>
                     <div class="flex items-center gap-4">
                         <button type="submit"
@@ -181,16 +278,30 @@
         const referencia = {{ number_format((float) $oferta->obtenerPrecioReferencia(), 2, '.', '') }};
         const monto = form.querySelector('[data-compras-monto]');
 
+        const parseNum = (val) => parseFloat(String(val ?? '').replace(',', '.'));
+
         const precioValido = () => {
-            const v = parseFloat(precio?.value);
+            const v = parseNum(precio?.value);
             return !isNaN(v) && v > 0;
         };
 
         const actualizar = () => {
-            const p = parseFloat(peso?.value) || 0;
-            const c = precioValido() ? parseFloat(precio.value) : referencia;
+            const p = parseNum(peso?.value) || 0;
+            const c = precioValido() ? parseNum(precio.value) : referencia;
             monto.textContent = 'Bs ' + (p * c).toFixed(2).replace('.', ',');
         };
+
+        const pinInput = form.querySelector('#codigo_confirmacion');
+        const sinPinCheckbox = form.querySelector('#sin_codigo_presencial');
+        const sincronizarPin = () => {
+            if (!pinInput || !sinPinCheckbox) return;
+            pinInput.required = !sinPinCheckbox.checked;
+            if (sinPinCheckbox.checked) {
+                pinInput.value = '';
+            }
+        };
+        sinPinCheckbox?.addEventListener('change', sincronizarPin);
+        sincronizarPin();
 
         peso?.addEventListener('input', actualizar);
         precio?.addEventListener('input', actualizar);

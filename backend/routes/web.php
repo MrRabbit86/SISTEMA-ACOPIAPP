@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\ComprobanteController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\MiOfertaController;
+use App\Http\Controllers\Web\NotificacionController;
 use App\Http\Controllers\Web\OfertaController;
 use App\Http\Controllers\Web\RegistroController;
 use App\Http\Controllers\Web\ReporteController;
@@ -34,10 +35,16 @@ Route::middleware('auth')->group(function () {
     Route::middleware('aprobado')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+        Route::get('/notificaciones/recientes', [NotificacionController::class, 'recientes'])->name('notificaciones.recientes');
+        Route::post('/notificaciones/{id}/leer', [NotificacionController::class, 'leer'])->name('notificaciones.leer');
+        Route::post('/notificaciones/leer-todas', [NotificacionController::class, 'leerTodas'])->name('notificaciones.leer-todas');
+
         Route::middleware('role:empresa,admin')->prefix('ofertas')->group(function () {
             Route::get('/', [OfertaController::class, 'mapa'])->name('ofertas.mapa');
             Route::get('/listado', [OfertaController::class, 'listado'])->name('ofertas.listado');
             Route::get('/{oferta}', [OfertaController::class, 'show'])->name('ofertas.show');
+            Route::post('/{oferta}/reservar', [OfertaController::class, 'reservar'])->name('ofertas.reservar');
+            Route::post('/{oferta}/liberar', [OfertaController::class, 'liberar'])->name('ofertas.liberar');
         });
 
         Route::middleware('role:empresa,admin')->group(function () {

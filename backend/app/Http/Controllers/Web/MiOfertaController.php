@@ -16,10 +16,11 @@ class MiOfertaController extends Controller
 {
     public function index(): View
     {
+        Oferta::liberarReservasExpiradas();
         $ciudadano = auth()->user()->ciudadano;
 
         $ofertas = Oferta::query()
-            ->with(['categoria', 'transaccion.empresa'])
+            ->with(['categoria', 'transaccion.empresa', 'empresaReservada'])
             ->where('ciudadano_id', $ciudadano?->id)
             ->latest('fecha_publicacion')
             ->get();

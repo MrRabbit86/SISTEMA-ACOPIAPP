@@ -13,7 +13,12 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-#[Fillable(['ciudadano_id', 'categoria_id', 'cantidad_estimada_kg', 'descripcion', 'modalidad_entrega', 'foto_url', 'latitud', 'longitud', 'estado', 'fecha_publicacion'])]
+#[Fillable([
+    'ciudadano_id', 'categoria_id', 'cantidad_estimada_kg', 'descripcion',
+    'modalidad_entrega', 'foto_url', 'latitud', 'longitud', 'estado',
+    'fecha_publicacion', 'empresa_reservada_id', 'reservada_hasta',
+    'codigo_confirmacion', 'motivo_cierre',
+])]
 class Oferta extends Model
 {
     /** @use HasFactory<\Database\Factories\OfertaFactory> */
@@ -47,6 +52,24 @@ class Oferta extends Model
         return $this->hasOne(Transaccion::class);
     }
 
+    public function empresaReservada(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'empresa_reservada_id');
+    }
+
+    public static function liberarReservasExpiradas(): void
+    {
+        static::query()
+            ->where('estado', EstadoOferta::EN_PROCESO->value)
+            ->whereNotNull('reservada_hasta')
+            ->where('reservada_hasta', '<=', now())
+            ->update([
+                'estado' => EstadoOferta::PENDIENTE->value,
+                'empresa_reservada_id' => null,
+                'reservada_hasta' => null,
+            ]);
+    }
+
     public function obtenerPrecioReferencia(): float
     {
         return (float) ($this->categoria?->precio_referencia_kg ?? 0);
@@ -64,7 +87,7 @@ class Oferta extends Model
 
     public function estaDisponible(): bool
     {
-        return $this->estado === EstadoOferta::PENDIENTE->value;
+        return in_array($this->estado, [EstadoOferta::PENDIENTE, EstadoOferta::EN_PROCESO], true);
     }
 
     public function modalidadLabel(): ?string
@@ -81,6 +104,7 @@ class Oferta extends Model
             'latitud' => 'decimal:7',
             'longitud' => 'decimal:7',
             'fecha_publicacion' => 'datetime',
+            'reservada_hasta' => 'datetime',
             'estado' => EstadoOferta::class,
             'modalidad_entrega' => ModalidadEntrega::class,
         ];

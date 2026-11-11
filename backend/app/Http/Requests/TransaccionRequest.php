@@ -35,6 +35,8 @@ class TransaccionRequest extends FormRequest
         $reglas = [
             'peso_real_kg' => ['required', 'numeric', 'decimal:0,2', 'gt:0', 'max:999999'],
             'precio_acordado_kg' => ['nullable', 'numeric', 'decimal:0,2', 'gt:0', 'max:999999'],
+            'codigo_confirmacion' => ['nullable', 'digits:4'],
+            'sin_codigo_presencial' => ['nullable', 'boolean'],
         ];
 
         if (! $this->route('oferta')) {
@@ -58,6 +60,18 @@ class TransaccionRequest extends FormRequest
                 }
 
                 if (! $oferta) {
+                    return;
+                }
+
+                if (
+                    $this->filled('codigo_confirmacion')
+                    && $oferta->codigo_confirmacion !== null
+                    && (string) $this->input('codigo_confirmacion') !== (string) $oferta->codigo_confirmacion
+                ) {
+                    $validator->errors()->add(
+                        'codigo_confirmacion',
+                        'El código de confirmación del ciudadano no coincide.',
+                    );
                     return;
                 }
 

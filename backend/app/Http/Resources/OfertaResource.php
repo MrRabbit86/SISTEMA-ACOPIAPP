@@ -24,6 +24,18 @@ class OfertaResource extends JsonResource
             'modalidad_label' => $this->modalidad_entrega instanceof ModalidadEntrega ? $this->modalidad_entrega->label() : null,
             'foto_url' => $this->foto_url ? Storage::disk('public')->url($this->foto_url) : null,
             'fecha_publicacion' => $this->fecha_publicacion?->toISOString(),
+            'reservada_hasta' => $this->reservada_hasta?->toISOString(),
+            'codigo_confirmacion' => $this->when(
+                $request->user() && $this->ciudadano && $this->ciudadano->usuario_id === $request->user()->id,
+                fn () => $this->codigo_confirmacion,
+            ),
+            'empresa_reservada' => $this->when($this->relationLoaded('empresaReservada'), function () {
+                return $this->empresaReservada ? [
+                    'id' => $this->empresaReservada->id,
+                    'nombre' => $this->empresaReservada->name,
+                    'telefono' => $this->empresaReservada->telefono,
+                ] : null;
+            }),
             'ciudadano' => $this->when($this->relationLoaded('ciudadano'), function () {
                 return $this->ciudadano ? [
                     'id' => $this->ciudadano->id,

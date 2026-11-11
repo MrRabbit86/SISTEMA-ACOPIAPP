@@ -6,9 +6,12 @@ use App\Enums\EstadoOferta;
 use App\Http\Controllers\Controller;
 use App\Models\CategoriaMaterial;
 use App\Models\Oferta;
+use App\Services\OfertaService;
 use App\Support\Geolocalizacion;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class OfertaController extends Controller
@@ -59,16 +62,62 @@ class OfertaController extends Controller
 
     public function show(Oferta $oferta): View
     {
-        $oferta->load(['ciudadano.usuario', 'categoria', 'transaccion']);
+        Oferta::liberarReservasExpiradas();
+        $oferta->refresh()->load(['ciudadano.usuario', 'categoria', 'transaccion', 'empresaReservada']);
 
         return view('ofertas.show', [
             'oferta' => $oferta,
+            'motivosLiberacion' => OfertaService::MOTIVOS_LIBERACION,
             'geo' => [
                 'lat' => (float) $oferta->latitud,
                 'lng' => (float) $oferta->longitud,
                 'material' => $oferta->categoria?->nombre,
             ],
         ]);
+    }
+
+    public function reservar(Oferta $oferta, Request $request): RedirectResponse
+    {
+        abort_unless($request->user()?->esEmpresa(), 403);
+
+        $resultado = (new OfertaService())->reservar($request->user(), $oferta);
+
+        if ($resultado->mal()) {
+            return back()->withErrors(['estado' => $resultado->mensaje()]);
+        }
+
+        return redirect()
+            ->route('ofertas.show', $oferta)
+            ->with('status', 'Recojo reservado por 2 horas. Puedes ver el contacto y dirigirte al punto.');
+    }
+
+    public function liberar(Oferta $oferta, Request $request): RedirectResponse
+    {
+        abort_unless($request->user()?->esEmpresa(), 403);
+
+        $validated = $request->validate([
+            'motivo' => ['required', Rule::in(array_keys(OfertaService::MOTIVOS_LIBERACION))],
+            'nota' => ['nullable', 'string', 'max:200'],
+        ]);
+
+        $resultado = (new OfertaService())->liberar(
+            $request->user(),
+            $oferta,
+            $validated['motivo'],
+            $validated['nota'] ?? null,
+        );
+
+        if ($resultado->mal()) {
+            return back()->withErrors(['estado' => $resultado->mensaje()]);
+        }
+
+        $mensaje = $validated['motivo'] === 'material_no_apto'
+            ? 'Oferta marcada como cancelada por material no apto.'
+            : 'Oferta liberada nuevamente para que otras empresas puedan verla.';
+
+        return redirect()
+            ->route('ofertas.show', $oferta)
+            ->with('status', $mensaje);
     }
 
     private function filtros(Request $request): array
@@ -84,17 +133,33 @@ class OfertaController extends Controller
 
     private function buscarOfertas(Request $request): Collection
     {
+        Oferta::liberarReservasExpiradas();
+
+        $user = $request->user();
         $query = Oferta::query()
-            ->with(['ciudadano.usuario', 'categoria'])
+            ->with(['ciudadano.usuario', 'categoria', 'empresaReservada'])
             ->latest('fecha_publicacion');
 
         if ($request->filled('estado')) {
             $query->where('estado', $request->query('estado'));
         } elseif (! $request->has('estado') || $request->query('estado') === '') {
-            $query->whereIn('estado', [
-                EstadoOferta::PENDIENTE->value,
-                EstadoOferta::EN_PROCESO->value,
-            ]);
+            if ($user?->esEmpresa()) {
+                $query->where(function ($q) use ($user) {
+                    $q->where('estado', EstadoOferta::PENDIENTE->value)
+                        ->orWhere(function ($sub) use ($user) {
+                            $sub->where('estado', EstadoOferta::EN_PROCESO->value)
+                                ->where(function ($inner) use ($user) {
+                                    $inner->whereNull('empresa_reservada_id')
+                                        ->orWhere('empresa_reservada_id', $user->id);
+                                });
+                        });
+                });
+            } else {
+                $query->whereIn('estado', [
+                    EstadoOferta::PENDIENTE->value,
+                    EstadoOferta::EN_PROCESO->value,
+                ]);
+            }
         }
 
         if ($request->filled('categoria_id')) {
