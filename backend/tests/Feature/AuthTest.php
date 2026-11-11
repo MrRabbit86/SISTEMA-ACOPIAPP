@@ -18,6 +18,7 @@ class AuthTest extends TestCase
             'email' => 'ana@example.com',
             'password' => 'secret1234',
             'rol' => 'ciudadano',
+            'telefono' => '71234567',
             'ci' => '9876543',
             'zona' => 'Valle Hermoso',
         ]);
@@ -39,12 +40,14 @@ class AuthTest extends TestCase
             'email' => 'eco@example.com',
             'password' => 'secret1234',
             'rol' => 'empresa',
+            'telefono' => '71234568',
         ]);
 
         $response->assertStatus(201)
             ->assertJsonPath('usuario.rol', 'empresa')
             ->assertJsonPath('usuario.nit', null)
             ->assertJsonPath('usuario.razon_social', null)
+            ->assertJsonPath('usuario.telefono', '71234568')
             ->assertJsonPath('usuario.estado', 'pendiente');
 
         $this->assertDatabaseHas('empresas_acopiadoras', [
@@ -52,6 +55,25 @@ class AuthTest extends TestCase
             'nit' => null,
             'razon_social' => null,
         ]);
+    }
+
+    public function test_registro_api_requiere_telefono_para_ciudadano_y_empresa(): void
+    {
+        $this->postJson('/api/auth/register', [
+            'name' => 'Sin Tel',
+            'email' => 'sintel1@example.com',
+            'password' => 'secret1234',
+            'rol' => 'ciudadano',
+            'ci' => '1122334',
+            'zona' => 'Zona Sur',
+        ])->assertStatus(422)->assertJsonValidationErrors(['telefono']);
+
+        $this->postJson('/api/auth/register', [
+            'name' => 'Sin Tel Emp',
+            'email' => 'sintel2@example.com',
+            'password' => 'secret1234',
+            'rol' => 'empresa',
+        ])->assertStatus(422)->assertJsonValidationErrors(['telefono']);
     }
 
     public function test_login_de_cuenta_pendiente_es_rechazado(): void

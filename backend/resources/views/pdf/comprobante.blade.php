@@ -4,77 +4,232 @@
     <meta charset="utf-8">
     <title>Comprobante {{ $comprobante->numero_comprobante }}</title>
     <style>
+        @page { margin: 18px 22px; }
         * { box-sizing: border-box; }
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1f2937; font-size: 12px; margin: 0; }
-        .encabezado { border-bottom: 3px solid #047857; padding-bottom: 10px; margin-bottom: 16px; }
-        .encabezado h1 { margin: 0; font-size: 18px; color: #047857; }
-        .encabezado .numero { float: right; text-align: right; }
-        .encabezado .numero strong { display: block; font-size: 14px; }
-        .panel { border: 1px solid #d1d5db; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; }
-        .panel h2 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #6b7280; }
-        table.detalle { width: 100%; border-collapse: collapse; }
-        table.detalle th, table.detalle td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
-        table.detalle th { background: #e7f5ef; color: #065f46; }
-        table.detalle td.total { text-align: right; }
-        .monto { font-size: 22px; font-weight: bold; color: #047857; text-align: right; margin: 0; }
-        .fila { display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .fila dt { color: #4b5563; }
-        .fila dd { text-align: right; font-weight: 600; margin: 0; }
-        .pie { margin-top: 20px; text-align: center; color: #9ca3af; font-size: 10px; border-top: 1px solid #e5e7eb; padding-top: 8px; }
-        .clearfix { clear: both; }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: #1f2937;
+            font-size: 11px;
+            margin: 0;
+        }
+        .header-banner {
+            background: #064e3b;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+        }
+        .header-table { width: 100%; border-collapse: collapse; }
+        .header-table td { vertical-align: middle; }
+        .header-logo { height: 34px; display: block; margin-bottom: 4px; }
+        .header-sub { font-size: 10px; color: #a7f3d0; }
+        .header-right { text-align: right; }
+        .header-title { font-size: 15px; font-weight: bold; margin: 0 0 2px; color: #ffffff; }
+        .header-meta { font-size: 10px; color: #d1fae5; line-height: 1.4; }
+        .grid-2 { width: 100%; border-collapse: separate; border-spacing: 10px 0; margin: 0 -10px 10px; }
+        .grid-2 > tbody > tr > td { width: 50%; vertical-align: top; }
+        .panel {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 9px 12px;
+            margin-bottom: 10px;
+            background: #ffffff;
+        }
+        .panel h2 {
+            margin: 0 0 6px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #065f46;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 4px;
+        }
+        table.kv { width: 100%; border-collapse: collapse; }
+        table.kv td { padding: 2.5px 0; font-size: 10.5px; vertical-align: top; }
+        table.kv td.k { color: #6b7280; width: 42%; }
+        table.kv td.v { text-align: right; font-weight: 600; color: #111827; width: 58%; }
+        table.detalle { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        table.detalle th, table.detalle td {
+            border: 1px solid #e5e7eb;
+            padding: 6px 7px;
+            text-align: left;
+            font-size: 10px;
+        }
+        table.detalle th { background: #ecfdf5; color: #065f46; font-weight: 700; }
+        table.detalle td.num, table.detalle th.num { text-align: right; }
+        .monto-box {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 6px;
+            padding: 9px 14px;
+            text-align: right;
+            margin-bottom: 10px;
+        }
+        .monto-label { font-size: 10px; color: #065f46; text-transform: uppercase; letter-spacing: .4px; }
+        .monto-valor { font-size: 20px; font-weight: bold; color: #047857; margin: 2px 0 0; }
+        .pie {
+            margin-top: 8px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 9.5px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 7px;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
-    <div class="encabezado">
-        <div class="numero">
-            <strong>N.º {{ $comprobante->numero_comprobante }}</strong>
-            Compra: {{ $transaccion->fecha_transaccion?->format('d/m/Y H:i') }}<br>
-            Emitido: {{ $comprobante->fecha_emision?->format('d/m/Y H:i') }}
-        </div>
-        <h1>Comprobante de compra</h1>
-        <div>Reciclaje Zona Sur · Control de compra-venta de residuos sólidos</div>
-        <div class="clearfix"></div>
-    </div>
+@php
+    $oferta = $transaccion->oferta;
+    $empresaUser = $transaccion->empresa;
+    $empresaPerfil = $empresaUser?->empresa;
+    $ciudadano = $oferta?->ciudadano;
+    $ciudadanoUser = $ciudadano?->usuario;
 
-    <div class="panel">
-        <h2>Empresa compradora</h2>
-        <dl class="fila"><dt>Razón social</dt><dd>{{ $transaccion->empresa?->empresa?->razon_social ?? $transaccion->empresa?->name }}</dd></dl>
-        <dl class="fila"><dt>NIT</dt><dd>{{ $transaccion->empresa?->empresa?->nit ?? '—' }}</dd></dl>
-        <dl class="fila"><dt>Encargado</dt><dd>{{ $transaccion->empresa?->name }}</dd></dl>
-    </div>
+    $logoPath = public_path('images/navbar-logo.png');
+    $logoBase64 = is_file($logoPath) ? 'data:image/png;base64,'.base64_encode(file_get_contents($logoPath)) : null;
 
-    <div class="panel">
-        <h2>Vendedor (ciudadano)</h2>
-        <dl class="fila"><dt>Nombre</dt><dd>{{ $transaccion->oferta?->ciudadano?->usuario?->name }}</dd></dl>
-        <dl class="fila"><dt>C.I.</dt><dd>{{ $transaccion->oferta?->ciudadano?->ci ?? '—' }}</dd></dl>
-        <dl class="fila"><dt>Zona</dt><dd>{{ $transaccion->oferta?->ciudadano?->zona ?? 'Zona Sur' }}</dd></dl>
-        <dl class="fila"><dt>Teléfono</dt><dd>{{ $transaccion->oferta?->ciudadano?->usuario?->telefono ?? '—' }}</dd></dl>
-    </div>
+    $pesoEstimado = (float) ($oferta?->cantidad_estimada_kg ?? 0);
+    $pesoReal = (float) $transaccion->peso_real_kg;
+    $diffPeso = round($pesoReal - $pesoEstimado, 2);
+    $pctPeso = $pesoEstimado > 0 ? round(($diffPeso / $pesoEstimado) * 100, 1) : null;
 
-    <table class="detalle">
-        <thead>
-            <tr>
-                <th>Material</th>
-                <th>Peso real (kg)</th>
-                <th>Precio (Bs/kg)</th>
-                <th class="total">Total (Bs)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>{{ $transaccion->oferta?->categoria?->nombre }}</td>
-                <td>{{ number_format((float) $transaccion->peso_real_kg, 2) }}</td>
-                <td>{{ number_format((float) $transaccion->precio_acordado_kg, 2) }}</td>
-                <td class="total"><strong>{{ number_format((float) $transaccion->monto_total, 2) }}</strong></td>
-            </tr>
-        </tbody>
+    $precioRef = (float) ($oferta?->categoria?->precio_referencia_kg ?? 0);
+    $precioAcordado = (float) $transaccion->precio_acordado_kg;
+    $diffPrecio = round($precioAcordado - $precioRef, 2);
+
+    $tiempoRespuesta = '—';
+    if ($oferta?->fecha_publicacion && $transaccion->fecha_transaccion) {
+        $minutos = (int) $oferta->fecha_publicacion->diffInMinutes($transaccion->fecha_transaccion, false);
+        if ($minutos >= 0) {
+            $horas = intdiv($minutos, 60);
+            $mins = $minutos % 60;
+            $tiempoRespuesta = $horas > 0 ? "{$horas} h {$mins} min" : "{$mins} min";
+        }
+    }
+@endphp
+
+<div class="header-banner">
+    <table class="header-table">
+        <tr>
+            <td>
+                @if ($logoBase64)
+                    <img src="{{ $logoBase64 }}" class="header-logo" alt="ACOPIAPP">
+                @else
+                    <strong style="font-size: 16px;">ACOPIAPP COCHABAMBA</strong>
+                @endif
+                <div class="header-sub">Control de compra-venta y trazabilidad de residuos sólidos</div>
+            </td>
+            <td class="header-right">
+                <div class="header-title">Comprobante de compra · N.º {{ $comprobante->numero_comprobante }}</div>
+                <div class="header-meta">
+                    Fecha de compra: {{ $transaccion->fecha_transaccion?->format('d/m/Y H:i') }}<br>
+                    Emitido: {{ $comprobante->fecha_emision?->format('d/m/Y H:i') }}
+                </div>
+            </td>
+        </tr>
     </table>
+</div>
 
-    <p class="monto">Monto total: Bs {{ number_format((float) $transaccion->monto_total, 2) }}</p>
+<table class="grid-2">
+    <tr>
+        <td>
+            <div class="panel" style="margin-bottom: 0;">
+                <h2>Empresa acopiadora</h2>
+                <table class="kv">
+                    <tr><td class="k">Nombre</td><td class="v">{{ $empresaUser?->name ?? '—' }}</td></tr>
+                    <tr><td class="k">Dirección</td><td class="v">{{ $empresaPerfil?->direccion ?? $empresaUser?->direccion ?? '—' }}</td></tr>
+                    <tr><td class="k">Teléfono</td><td class="v">{{ $empresaUser?->telefono ?? '—' }}</td></tr>
+                    <tr><td class="k">Correo</td><td class="v">{{ $empresaUser?->email ?? '—' }}</td></tr>
+                </table>
+            </div>
+        </td>
+        <td>
+            <div class="panel" style="margin-bottom: 0;">
+                <h2>Vendedor (ciudadano)</h2>
+                <table class="kv">
+                    <tr><td class="k">Nombre</td><td class="v">{{ $ciudadanoUser?->name ?? '—' }}</td></tr>
+                    <tr><td class="k">C.I.</td><td class="v">{{ $ciudadano?->ci ?? '—' }}</td></tr>
+                    <tr><td class="k">Zona</td><td class="v">{{ $ciudadano?->zona ?? 'Zona Sur' }}</td></tr>
+                    <tr><td class="k">Teléfono</td><td class="v">{{ $ciudadanoUser?->telefono ?? '—' }}</td></tr>
+                </table>
+            </div>
+        </td>
+    </tr>
+</table>
 
-    <div class="pie">
-        El presente comprobante documenta la transacción de compra-venta de material reciclable en la Zona Sur de Cochabamba. ·
-        Transacción #{{ $transaccion->id }} · Fecha: {{ $transaccion->fecha_transaccion?->format('d/m/Y H:i') }}
-    </div>
+<div class="panel">
+    <h2>Trazabilidad logística y métricas operativas</h2>
+    <table class="kv">
+        <tr>
+            <td class="k">Oferta de origen</td>
+            <td class="v">#{{ $oferta?->id ?? '—' }} · Publicada: {{ $oferta?->fecha_publicacion?->format('d/m/Y H:i') ?? '—' }}</td>
+        </tr>
+        <tr>
+            <td class="k">Modalidad de entrega</td>
+            <td class="v">{{ $oferta?->modalidadLabel() ?? '—' }}</td>
+        </tr>
+        <tr>
+            <td class="k">Ubicación (GPS)</td>
+            <td class="v">{{ $oferta ? number_format((float) $oferta->latitud, 6).', '.number_format((float) $oferta->longitud, 6) : '—' }}</td>
+        </tr>
+        <tr>
+            <td class="k">Tiempo de cierre</td>
+            <td class="v">{{ $tiempoRespuesta }}</td>
+        </tr>
+        <tr>
+            <td class="k">Puntos verdes otorgados</td>
+            <td class="v">+{{ number_format((int) ($transaccion->puntos_otorgados ?? 0)) }} pts</td>
+        </tr>
+    </table>
+</div>
+
+<table class="detalle">
+    <thead>
+        <tr>
+            <th>Material</th>
+            <th class="num">Estimado (kg)</th>
+            <th class="num">Peso real (kg)</th>
+            <th class="num">Desv. peso</th>
+            <th class="num">Precio ref. (Bs/kg)</th>
+            <th class="num">Acordado (Bs/kg)</th>
+            <th class="num">Var. precio</th>
+            <th class="num">Total (Bs)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>{{ $oferta?->categoria?->nombre ?? '—' }}</strong></td>
+            <td class="num">{{ number_format($pesoEstimado, 2) }}</td>
+            <td class="num"><strong>{{ number_format($pesoReal, 2) }}</strong></td>
+            <td class="num">
+                {{ ($diffPeso >= 0 ? '+' : '').number_format($diffPeso, 2) }} kg
+                @if ($pctPeso !== null)
+                    ({{ ($pctPeso >= 0 ? '+' : '').number_format($pctPeso, 1) }}%)
+                @endif
+            </td>
+            <td class="num">{{ number_format($precioRef, 2) }}</td>
+            <td class="num">{{ number_format($precioAcordado, 2) }}</td>
+            <td class="num">
+                @if (abs($diffPrecio) < 0.005)
+                    En ref.
+                @else
+                    {{ ($diffPrecio >= 0 ? '+' : '').number_format($diffPrecio, 2) }} Bs
+                @endif
+            </td>
+            <td class="num"><strong>{{ number_format((float) $transaccion->monto_total, 2) }}</strong></td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="monto-box">
+    <div class="monto-label">Monto total de la transacción</div>
+    <p class="monto-valor">Bs {{ number_format((float) $transaccion->monto_total, 2) }}</p>
+</div>
+
+<div class="pie">
+    El presente comprobante documenta la transacción de compra-venta de material reciclable en Cochabamba.<br>
+    Transacción #{{ $transaccion->id }} · Oferta #{{ $oferta?->id ?? '—' }} · Comprobante {{ $comprobante->numero_comprobante }}
+</div>
 </body>
 </html>

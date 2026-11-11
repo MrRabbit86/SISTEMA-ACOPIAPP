@@ -61,6 +61,7 @@ class WebTest extends TestCase
             'email' => 'existente@example.com',
             'password' => 'secret1234',
             'password_confirmation' => 'secret1234',
+            'telefono' => '71234567',
             'ci' => '7654321',
             'zona' => 'Calacala',
         ])->assertSessionHasErrors('email');
@@ -68,7 +69,7 @@ class WebTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_registro_web_requiere_ci_y_zona(): void
+    public function test_registro_web_requiere_ci_zona_y_telefono(): void
     {
         $this->post('/login/registrar', [
             'tipo' => 'ciudadano',
@@ -76,7 +77,15 @@ class WebTest extends TestCase
             'email' => 'luis@example.com',
             'password' => 'secret1234',
             'password_confirmation' => 'secret1234',
-        ])->assertSessionHasErrors(['ci', 'zona']);
+        ])->assertSessionHasErrors(['ci', 'zona', 'telefono']);
+
+        $this->post('/login/registrar', [
+            'tipo' => 'empresa',
+            'name' => 'Empresa Sin Tel',
+            'email' => 'empresatel@example.com',
+            'password' => 'secret1234',
+            'password_confirmation' => 'secret1234',
+        ])->assertSessionHasErrors(['telefono']);
 
         $this->assertGuest();
     }

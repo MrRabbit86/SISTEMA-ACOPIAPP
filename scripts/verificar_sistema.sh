@@ -34,7 +34,7 @@ json_contains() { # desc substring haystack_json (decodifica unicode \u)
 
 api_register() { # name email pass rol extra_json
   curl -s -X POST "$BASE/api/auth/register" -H 'Accept: application/json' -H 'Content-Type: application/json' \
-    -d "{\"name\":\"$1\",\"email\":\"$2\",\"password\":\"$3\",\"rol\":\"$4\"$( [ -n "${5:-}" ] && printf ',%s' "$5" )}"
+    -d "{\"name\":\"$1\",\"email\":\"$2\",\"password\":\"$3\",\"rol\":\"$4\",\"telefono\":\"7800100\"$( [ -n "${5:-}" ] && printf ',%s' "$5" )}"
 }
 api_login() { # email pass  -> STATUS actual (deja body en $TMP/login.json)
   curl -s -o "$TMP/login.json" -w '%{http_code}' -X POST "$BASE/api/auth/login" \
@@ -120,7 +120,7 @@ api_register "Probe Rechaz" "probe_rechaz@probe.bo" "probe1234" "empresa" >/dev/
 curl -s -c "$TMP/webreg.jar" -o "$TMP/lw.html" "$BASE/login"
 WRCSRF=$(grep -oE 'name="_token" value="[^"]+"' "$TMP/lw.html" | head -1 | sed 's/.*value="//;s/"//')
 WRCODE=$(curl -s -b "$TMP/webreg.jar" -o /dev/null -w '%{http_code}' -X POST "$BASE/login/registrar" \
-  -d "_token=$WRCSRF&tipo=ciudadano&name=Probe Web&email=probe_web@probe.bo&password=probe1234&password_confirmation=probe1234&ci=7800103&zona=Muyurina")
+  -d "_token=$WRCSRF&tipo=ciudadano&name=Probe Web&email=probe_web@probe.bo&password=probe1234&password_confirmation=probe1234&telefono=7800103&ci=7800103&zona=Muyurina")
 check "Registro ciudadano por panel web -> 302" "302" "$WRCODE"
 WR_ST=$(mysql "${MYSQL[@]}" -N -B "$DB" -e "SELECT estado FROM users WHERE email='probe_web@probe.bo';" 2>/dev/null)
 check "Ciudadano registrado por web queda activo (BD)" "aprobado" "$WR_ST"
@@ -129,7 +129,7 @@ check "Ciudadano registrado por web queda activo (BD)" "aprobado" "$WR_ST"
 curl -s -c "$TMP/webemp.jar" -o "$TMP/le.html" "$BASE/login"
 WECS=$(grep -oE 'name="_token" value="[^"]+"' "$TMP/le.html" | head -1 | sed 's/.*value="//;s/"//')
 WECODE=$(curl -s -b "$TMP/webemp.jar" -o /dev/null -w '%{http_code}' -X POST "$BASE/login/registrar" \
-  -d "_token=$WECS&tipo=empresa&name=Probe Web Empresa&email=probe_webemp@probe.bo&password=probe1234&password_confirmation=probe1234")
+  -d "_token=$WECS&tipo=empresa&name=Probe Web Empresa&email=probe_webemp@probe.bo&password=probe1234&password_confirmation=probe1234&telefono=7800104")
 check "Registro empresa por panel web -> 302 (vuelve al login)" "302" "$WECODE"
 WEMP_ST=$(mysql "${MYSQL[@]}" -N -B "$DB" -e "SELECT estado FROM users WHERE email='probe_webemp@probe.bo';" 2>/dev/null)
 check "Empresa registrada por web queda PENDIENTE (BD)" "pendiente" "$WEMP_ST"

@@ -32,6 +32,30 @@ class ComprobanteTest extends TestCase
         ]);
     }
 
+    public function test_vista_comprobante_omite_nit_razon_social_e_incluye_metricas_clave(): void
+    {
+        $empresa = EmpresaAcopiadora::factory()->create();
+        $transaccion = Transaccion::factory()->create(['empresa_id' => $empresa->usuario->id]);
+        $comprobante = Comprobante::create([
+            'transaccion_id' => $transaccion->id,
+            'numero_comprobante' => 'CMP-'.now()->year.'-0099',
+            'fecha_emision' => now(),
+        ]);
+
+        $html = view('pdf.comprobante', [
+            'transaccion' => $transaccion->load(['oferta.categoria', 'oferta.ciudadano.usuario', 'empresa.empresa']),
+            'comprobante' => $comprobante,
+        ])->render();
+
+        $this->assertStringContainsString('Empresa acopiadora', $html);
+        $this->assertStringContainsString($empresa->usuario->name, $html);
+        $this->assertStringContainsString('Trazabilidad logística y métricas operativas', $html);
+        $this->assertStringContainsString('Puntos verdes otorgados', $html);
+        $this->assertStringContainsString('data:image/png;base64,', $html);
+        $this->assertStringNotContainsString('Razón social', $html);
+        $this->assertStringNotContainsString('NIT', $html);
+    }
+
     public function test_segunda_descarga_reutiliza_el_mismo_comprobante(): void
     {
         $empresa = EmpresaAcopiadora::factory()->create();

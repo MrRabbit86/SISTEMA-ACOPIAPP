@@ -125,8 +125,9 @@
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label for="reg-telefono" class="mb-1 block text-sm font-medium">Teléfono (opcional)</label>
+                            <label for="reg-telefono" class="mb-1 block text-sm font-medium">Teléfono</label>
                             <input type="text" name="telefono" id="reg-telefono" value="{{ old('telefono') }}"
+                                   inputmode="tel" minlength="7" maxlength="20" required
                                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
                         <div>
