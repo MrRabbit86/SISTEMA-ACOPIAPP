@@ -66,7 +66,7 @@
                             @if ($usuario->esCiudadano())
                                 {{ $usuario->ciudadano?->zona ?? '—' }}
                             @elseif ($usuario->esEmpresa())
-                                {{ $usuario->empresa?->razon_social }}
+                                {{ $usuario->empresa?->razon_social ?? $usuario->empresa?->direccion ?? '—' }}
                             @else
                                 Sistema
                             @endif

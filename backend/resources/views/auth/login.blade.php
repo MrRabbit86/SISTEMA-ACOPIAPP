@@ -23,12 +23,13 @@
         </div>
 
         <div class="rounded-xl bg-white p-8 shadow-xl">
+            @php $mostrarRegistro = old('tipo') !== null; @endphp
             <div class="mb-6 grid grid-cols-2 gap-1 rounded-lg bg-emerald-50 p-1">
                 <button type="button" id="tab-login-btn" data-tab="login"
-                        class="rounded-md px-4 py-2 text-sm font-medium transition {{ $errors->has('email') ? '' : 'bg-emerald-700 text-white' }}"
+                        class="rounded-md px-4 py-2 text-sm font-medium transition {{ $mostrarRegistro ? '' : 'bg-emerald-700 text-white' }}"
                         onclick="cambiarPestana('login')">Ingresar</button>
                 <button type="button" id="tab-registro-btn" data-tab="registro"
-                        class="rounded-md px-4 py-2 text-sm font-medium transition {{ $errors->has('email') ? 'bg-emerald-700 text-white' : '' }}"
+                        class="rounded-md px-4 py-2 text-sm font-medium transition {{ $mostrarRegistro ? 'bg-emerald-700 text-white' : '' }}"
                         onclick="cambiarPestana('registro')">Registrarse</button>
             </div>
 
@@ -38,18 +39,18 @@
                 </div>
             @endif
 
-            @if ($errors->any() && ! $errors->has('email'))
+            @if ($errors->any() && $mostrarRegistro)
                 <div class="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200">
                     {{ $errors->first() }}
                 </div>
             @endif
 
-            <div id="panel-login" class="{{ $errors->has('email') ? 'hidden' : '' }}">
+            <div id="panel-login" class="{{ $mostrarRegistro ? 'hidden' : '' }}">
                 <h2 class="mb-6 text-center text-xl font-semibold">Iniciar sesión</h2>
 
-                @if ($errors->has('email'))
+                @if ($errors->any() && ! $mostrarRegistro)
                     <div class="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200">
-                        {{ $errors->first('email') }}
+                        {{ $errors->first() }}
                     </div>
                 @endif
 
@@ -78,7 +79,7 @@
                 </form>
             </div>
 
-            <div id="panel-registro" class="{{ $errors->has('email') ? '' : 'hidden' }}">
+            <div id="panel-registro" class="{{ $mostrarRegistro ? '' : 'hidden' }}">
                 <h2 class="mb-6 text-center text-xl font-semibold">Crear cuenta</h2>
 
                 <form method="POST" action="{{ route('registro.store') }}" class="space-y-4">
@@ -110,18 +111,6 @@
                         <div>
                             <label for="reg-zona" class="mb-1 block text-sm font-medium">Zona</label>
                             <input type="text" name="zona" id="reg-zona" value="{{ old('zona') }}"
-                                   class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                        </div>
-                    </div>
-                    <div id="campos-empresa" class="hidden grid-cols-2 gap-3">
-                        <div>
-                            <label for="reg-nit" class="mb-1 block text-sm font-medium">NIT</label>
-                            <input type="text" name="nit" id="reg-nit" value="{{ old('nit') }}"
-                                   class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
-                        </div>
-                        <div>
-                            <label for="reg-razon-social" class="mb-1 block text-sm font-medium">Razón social</label>
-                            <input type="text" name="razon_social" id="reg-razon-social" value="{{ old('razon_social') }}"
                                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
                     </div>
@@ -185,14 +174,11 @@
             const esEmpresa = tipo === 'empresa';
 
             document.getElementById('campos-ciudadano').classList.toggle('hidden', esEmpresa);
-            document.getElementById('campos-empresa').classList.toggle('hidden', !esEmpresa);
 
             const ci = document.getElementById('reg-ci');
             const zona = document.getElementById('reg-zona');
             ci.required = !esEmpresa;
             zona.required = !esEmpresa;
-            document.getElementById('reg-nit').required = esEmpresa;
-            document.getElementById('reg-razon-social').required = esEmpresa;
 
             document.getElementById('reg-submit').textContent = esEmpresa
                 ? 'Registrar empresa'

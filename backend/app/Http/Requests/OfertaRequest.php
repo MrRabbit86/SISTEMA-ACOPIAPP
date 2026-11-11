@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\ModalidadEntrega;
 use App\Support\Geolocalizacion;
+use App\Support\NormalizadorDecimal;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -16,10 +17,18 @@ class OfertaRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $datos = NormalizadorDecimal::normalizar($this->all(), [
+            'cantidad_estimada_kg',
+            'latitud',
+            'longitud',
+        ]);
+
         if (! $this->filled('modalidad_entrega')) {
-            $this->merge([
-                'modalidad_entrega' => ModalidadEntrega::ENTREGA_PUNTO_VERDE->value,
-            ]);
+            $datos['modalidad_entrega'] = ModalidadEntrega::ENTREGA_PUNTO_VERDE->value;
+        }
+
+        if ($datos !== []) {
+            $this->merge($datos);
         }
     }
 

@@ -15,13 +15,13 @@ Route::prefix('auth')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/me', [AuthController::class, 'me']);
+        Route::get('/me', [AuthController::class, 'me'])->middleware('aprobado');
     });
 });
 
 Route::get('/categorias', [CategoriaController::class, 'index']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'aprobado'])->group(function () {
     Route::get('/ofertas/mias', [OfertaController::class, 'mias']);
     Route::apiResource('ofertas', OfertaController::class)
         ->only(['index', 'show', 'store'])
@@ -29,7 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/ofertas/{oferta}/cancelar', [OfertaController::class, 'cancelar']);
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'aprobado'])->group(function () {
     Route::get('/transacciones', [TransaccionController::class, 'index']);
     Route::post('/transacciones', [TransaccionController::class, 'store']);
     Route::get('/transacciones/{transaccion}', [TransaccionController::class, 'show']);
@@ -39,7 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reportes/pdf', [ReporteController::class, 'pdf']);
 });
 
-Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', 'aprobado'])->group(function () {
     Route::get('/usuarios', [AdminController::class, 'usuarios']);
     Route::post('/usuarios/{user}/aprobar', [AdminController::class, 'aprobar']);
     Route::post('/usuarios/{user}/rechazar', [AdminController::class, 'rechazar']);

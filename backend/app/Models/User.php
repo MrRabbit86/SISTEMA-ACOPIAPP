@@ -55,7 +55,7 @@ class User extends Authenticatable
     {
         return match ($this->rol) {
             Rol::CIUDADANO => $this->ciudadano?->zona,
-            Rol::EMPRESA => $this->empresa?->razon_social,
+            Rol::EMPRESA => $this->empresa?->razon_social ?? $this->name,
             default => null,
         };
     }

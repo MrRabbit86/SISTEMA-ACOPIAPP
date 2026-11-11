@@ -11,7 +11,7 @@ set -u
 
 BASE="${BASE:-http://localhost:8000}"
 MYSQL=(-uroot -p3l3d3zm4F)
-DB=sistema_reciclaje_2026
+DB="${DB:-acopiaapp_pruebas}"
 TMP="$(mktemp -d)"
 PASS=0
 FAIL=0
@@ -103,7 +103,7 @@ C_UID=$(python3 -c 'import sys,json;print(json.load(sys.stdin)["usuario"]["id"])
 L=$(api_login "probe_ciudadano@probe.bo" "probe1234")
 check "Ciudadano entra de inmediato (API 200)" "200" "$L"
 
-R=$(api_register "Probe Empresa" "probe_empresa@probe.bo" "probe1234" "empresa" '"nit":"7770001","razon_social":"Probe Reciclaje SRL"')
+R=$(api_register "Probe Empresa" "probe_empresa@probe.bo" "probe1234" "empresa")
 contains "Registro empresa -> pendiente (API)" '"estado":"pendiente"' "$R"
 E_UID=$(python3 -c 'import sys,json;print(json.load(sys.stdin)["usuario"]["id"])' <<<"$R")
 
@@ -111,10 +111,10 @@ L=$(api_login "probe_empresa@probe.bo" "probe1234")
 check "Login empresa pendiente bloqueado (API 403)" "403" "$L"
 contains "Mensaje pendiente de aprobación" "pendiente" "$(cat "$TMP/login.json")"
 
-R=$(api_register "Probe Emp2" "probe_pend@probe.bo" "probe1234" "empresa" '"nit":"7770003","razon_social":"Probe Emp2 SRL"')
+R=$(api_register "Probe Emp2" "probe_pend@probe.bo" "probe1234" "empresa")
 P2_UID=$(python3 -c 'import sys,json;print(json.load(sys.stdin)["usuario"]["id"])' <<<"$R")
 
-api_register "Probe Rechaz" "probe_rechaz@probe.bo" "probe1234" "empresa" '"nit":"7770002","razon_social":"Probe Rechaz SRL"' >/dev/null
+api_register "Probe Rechaz" "probe_rechaz@probe.bo" "probe1234" "empresa" >/dev/null
 
 # Registro de ciudadano desde el PANEL WEB (pestaña "Registrarse" del login)
 curl -s -c "$TMP/webreg.jar" -o "$TMP/lw.html" "$BASE/login"
@@ -129,12 +129,12 @@ check "Ciudadano registrado por web queda activo (BD)" "aprobado" "$WR_ST"
 curl -s -c "$TMP/webemp.jar" -o "$TMP/le.html" "$BASE/login"
 WECS=$(grep -oE 'name="_token" value="[^"]+"' "$TMP/le.html" | head -1 | sed 's/.*value="//;s/"//')
 WECODE=$(curl -s -b "$TMP/webemp.jar" -o /dev/null -w '%{http_code}' -X POST "$BASE/login/registrar" \
-  -d "_token=$WECS&tipo=empresa&name=Probe Web Empresa&email=probe_webemp@probe.bo&password=probe1234&password_confirmation=probe1234&nit=7779001&razon_social=Probe Web Empresa SRL")
+  -d "_token=$WECS&tipo=empresa&name=Probe Web Empresa&email=probe_webemp@probe.bo&password=probe1234&password_confirmation=probe1234")
 check "Registro empresa por panel web -> 302 (vuelve al login)" "302" "$WECODE"
 WEMP_ST=$(mysql "${MYSQL[@]}" -N -B "$DB" -e "SELECT estado FROM users WHERE email='probe_webemp@probe.bo';" 2>/dev/null)
 check "Empresa registrada por web queda PENDIENTE (BD)" "pendiente" "$WEMP_ST"
-WEMP_NIT=$(mysql "${MYSQL[@]}" -N -B "$DB" -e "SELECT nit FROM empresas_acopiadoras e JOIN users u ON u.id=e.usuario_id WHERE u.email='probe_webemp@probe.bo';" 2>/dev/null)
-check "Perfil empresa web creado con NIT (BD)" "7779001" "$WEMP_NIT"
+WEMP_CNT=$(mysql "${MYSQL[@]}" -N -B "$DB" -e "SELECT COUNT(*) FROM empresas_acopiadoras e JOIN users u ON u.id=e.usuario_id WHERE u.email='probe_webemp@probe.bo';" 2>/dev/null)
+check "Perfil empresa web creado (BD)" "1" "$WEMP_CNT"
 
 # ==========================================================
 say "2. ADMIN — APROBACIÓN / RECHAZO (API) Y PANEL"
@@ -178,7 +178,8 @@ RC=$(web_del "$TMP/adm.jar" "$BASE/admin/categorias" "$BASE/admin/categorias/$CO
 check "Eliminar categoría Cobre -> 302" "302" "$RC"
 web_page "$TMP/adm.jar" "$BASE/admin/categorias"
 if grep -q "Cobre" "$TMP/p.html"; then bad "Cobre eliminado del panel" "(ausencia)" "aún visible"; else ok "Cobre eliminado del panel"; fi
-RC=$(web_del "$TMP/adm.jar" "$BASE/admin/categorias" "$BASE/admin/categorias/1")
+PET_ID=$(mysql "${MYSQL[@]}" -N -B "$DB" -e "SELECT id FROM categorias_material WHERE nombre LIKE '%PET%' LIMIT 1;" 2>/dev/null)
+RC=$(web_del "$TMP/adm.jar" "$BASE/admin/categorias" "$BASE/admin/categorias/$PET_ID")
 check "Eliminar categoría con ofertas (Plástico PET) -> 422" "422" "$RC"
 
 # ==========================================================

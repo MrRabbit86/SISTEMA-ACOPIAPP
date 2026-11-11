@@ -32,36 +32,26 @@ class AuthTest extends TestCase
         $this->assertDatabaseHas('ciudadanos', ['ci' => '9876543']);
     }
 
-    public function test_registro_empresa_requiere_nit_y_razon_social(): void
+    public function test_registro_empresa_no_requiere_nit_ni_razon_social(): void
     {
         $response = $this->postJson('/api/auth/register', [
             'name' => 'Eco Servicios',
             'email' => 'eco@example.com',
             'password' => 'secret1234',
             'rol' => 'empresa',
-        ]);
-
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['nit', 'razon_social']);
-    }
-
-    public function test_registro_empresa_completo_crea_perfil(): void
-    {
-        $response = $this->postJson('/api/auth/register', [
-            'name' => 'Eco Servicios',
-            'email' => 'eco@example.com',
-            'password' => 'secret1234',
-            'rol' => 'empresa',
-            'nit' => '1020304050',
-            'razon_social' => 'Eco Servicios S.R.L.',
         ]);
 
         $response->assertStatus(201)
             ->assertJsonPath('usuario.rol', 'empresa')
-            ->assertJsonPath('usuario.nit', '1020304050')
+            ->assertJsonPath('usuario.nit', null)
+            ->assertJsonPath('usuario.razon_social', null)
             ->assertJsonPath('usuario.estado', 'pendiente');
 
-        $this->assertDatabaseHas('empresas_acopiadoras', ['nit' => '1020304050']);
+        $this->assertDatabaseHas('empresas_acopiadoras', [
+            'usuario_id' => $response->json('usuario.id'),
+            'nit' => null,
+            'razon_social' => null,
+        ]);
     }
 
     public function test_login_de_cuenta_pendiente_es_rechazado(): void

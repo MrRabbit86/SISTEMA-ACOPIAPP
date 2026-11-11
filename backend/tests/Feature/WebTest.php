@@ -89,8 +89,6 @@ class WebTest extends TestCase
             'email' => 'empresa@example.com',
             'password' => 'secret1234',
             'password_confirmation' => 'secret1234',
-            'nit' => '1023467',
-            'razon_social' => 'Reciclajes Andinos S.R.L.',
             'telefono' => '71234567',
             'direccion' => 'Av. Blanco Galindo km 7',
         ])->assertRedirect(route('login'));
@@ -101,23 +99,22 @@ class WebTest extends TestCase
             'rol' => 'empresa',
             'estado' => 'pendiente',
         ]);
+
+        $user = User::where('email', 'empresa@example.com')->firstOrFail();
+
         $this->assertDatabaseHas('empresas_acopiadoras', [
-            'nit' => '1023467',
-            'razon_social' => 'Reciclajes Andinos S.R.L.',
+            'usuario_id' => $user->id,
+            'nit' => null,
+            'razon_social' => null,
         ]);
     }
 
-    public function test_registro_web_empresa_requiere_nit_y_razon_social(): void
+    public function test_formulario_login_no_muestra_nit_ni_razon_social(): void
     {
-        $this->post('/login/registrar', [
-            'tipo' => 'empresa',
-            'name' => 'Reciclajes Andinos',
-            'email' => 'empresa@example.com',
-            'password' => 'secret1234',
-            'password_confirmation' => 'secret1234',
-        ])->assertSessionHasErrors(['nit', 'razon_social']);
-
-        $this->assertGuest();
+        $this->get('/login')
+            ->assertOk()
+            ->assertDontSee('name="nit"', false)
+            ->assertDontSee('name="razon_social"', false);
     }
 
     public function test_raiz_redirige_a_login_sin_autenticar(): void
@@ -132,10 +129,16 @@ class WebTest extends TestCase
             'password' => 'secret1234',
         ]);
 
-        $this->post('/login', [
-            'email' => 'pendiente@example.com',
-            'password' => 'secret1234',
-        ])->assertSessionHasErrors('email');
+        $this->from('/login')
+            ->followingRedirects()
+            ->post('/login', [
+                'email' => 'pendiente@example.com',
+                'password' => 'secret1234',
+            ])
+            ->assertOk()
+            ->assertSee('Su cuenta está pendiente de aprobación por un administrador.')
+            ->assertSee('<div id="panel-login" class="">', false)
+            ->assertSee('<div id="panel-registro" class="hidden">', false);
 
         $this->assertGuest();
     }

@@ -40,8 +40,6 @@ class AuthController extends Controller
                 ]);
             } else {
                 $user->empresa()->create([
-                    'nit' => $validated['nit'],
-                    'razon_social' => $validated['razon_social'],
                     'direccion' => $validated['direccion'] ?? null,
                 ]);
             }

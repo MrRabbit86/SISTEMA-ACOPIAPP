@@ -1,7 +1,8 @@
 /* Service Worker — Sistema de Reciclaje Zona Sur (PWA ligera). */
-const CACHE = 'reciclaje-v3';
+const CACHE = 'reciclaje-v4';
 const CAPARAZON = [
   '/manifest.json',
+  '/offline.html',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
 ];
@@ -46,7 +47,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE).then((cache) => cache.put(request, copia));
           return resp;
         })
-        .catch(() => caches.match(request).then((r) => r || caches.match('/dashboard'))),
+        .catch(() => caches.match(request).then((r) => r || caches.match('/offline.html'))),
     );
     return;
   }

@@ -38,8 +38,8 @@
 
                 <div>
                     <label for="cantidad_estimada_kg" class="mb-1 block text-sm font-medium">Peso aproximado (kg)</label>
-                    <input type="number" name="cantidad_estimada_kg" id="cantidad_estimada_kg"
-                           value="{{ old('cantidad_estimada_kg') }}" step="0.01" min="0.01" required
+                    <input type="text" inputmode="decimal" name="cantidad_estimada_kg" id="cantidad_estimada_kg"
+                           value="{{ old('cantidad_estimada_kg') }}" placeholder="Ej: 12.50" required
                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                 </div>
 

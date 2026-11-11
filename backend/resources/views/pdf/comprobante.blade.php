@@ -28,6 +28,7 @@
     <div class="encabezado">
         <div class="numero">
             <strong>N.º {{ $comprobante->numero_comprobante }}</strong>
+            Compra: {{ $transaccion->fecha_transaccion?->format('d/m/Y H:i') }}<br>
             Emitido: {{ $comprobante->fecha_emision?->format('d/m/Y H:i') }}
         </div>
         <h1>Comprobante de compra</h1>

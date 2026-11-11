@@ -47,16 +47,21 @@ class OfertaService
 
     public function cancelar(Ciudadano $ciudadano, Oferta $oferta): Result
     {
-        if ($oferta->ciudadano_id !== $ciudadano->id) {
-            return Result::fail('No tiene permisos para cancelar esta oferta.', 'sin_permiso');
-        }
+        return DB::transaction(function () use ($ciudadano, $oferta): Result {
+            // Bloquea la fila para evitar carreras entre cancelación del ciudadano y compra de la empresa.
+            $oferta = Oferta::query()->lockForUpdate()->find($oferta->id);
 
-        if ($oferta->estado === EstadoOferta::COMPLETADA || $oferta->estado === EstadoOferta::CANCELADA) {
-            return Result::fail('La oferta no puede cancelarse en su estado actual.', 'estado_invalido');
-        }
+            if (! $oferta || $oferta->ciudadano_id !== $ciudadano->id) {
+                return Result::fail('No tiene permisos para cancelar esta oferta.', 'sin_permiso');
+            }
 
-        $oferta->update(['estado' => EstadoOferta::CANCELADA]);
+            if ($oferta->estado === EstadoOferta::COMPLETADA || $oferta->estado === EstadoOferta::CANCELADA) {
+                return Result::fail('La oferta no puede cancelarse en su estado actual.', 'estado_invalido');
+            }
 
-        return Result::ok($oferta);
+            $oferta->update(['estado' => EstadoOferta::CANCELADA]);
+
+            return Result::ok($oferta);
+        });
     }
 }

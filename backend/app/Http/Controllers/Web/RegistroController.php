@@ -32,8 +32,6 @@ class RegistroController extends Controller
 
             if ($esEmpresa) {
                 $user->empresa()->create([
-                    'nit' => $validated['nit'],
-                    'razon_social' => $validated['razon_social'],
                     'direccion' => $validated['direccion'] ?? null,
                 ]);
             } else {

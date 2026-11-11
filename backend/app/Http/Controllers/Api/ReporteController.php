@@ -3,22 +3,23 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ReporteRequest;
 use App\Support\ReporteService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class ReporteController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(ReporteRequest $request): JsonResponse
     {
         $user = $request->user();
 
         abort_unless($user->esAdmin() || $user->esEmpresa(), 403,
             'Solo las empresas y el administrador pueden generar reportes.');
 
-        $desde = $request->filled('desde') ? $request->query('desde') : null;
-        $hasta = $request->filled('hasta') ? $request->query('hasta') : null;
+        $validated = $request->validated();
+        $desde = $validated['desde'] ?? null;
+        $hasta = $validated['hasta'] ?? null;
         $empresaId = $user->esEmpresa() ? $user->id : null;
 
         $servicio = new ReporteService();
@@ -32,15 +33,16 @@ class ReporteController extends Controller
         return response()->json($datos);
     }
 
-    public function pdf(Request $request): Response
+    public function pdf(ReporteRequest $request): Response
     {
         $user = $request->user();
 
         abort_unless($user->esAdmin() || $user->esEmpresa(), 403,
             'Solo las empresas y el administrador pueden exportar reportes.');
 
-        $desde = $request->filled('desde') ? $request->query('desde') : null;
-        $hasta = $request->filled('hasta') ? $request->query('hasta') : null;
+        $validated = $request->validated();
+        $desde = $validated['desde'] ?? null;
+        $hasta = $validated['hasta'] ?? null;
         $empresaId = $user->esEmpresa() ? $user->id : null;
 
         $servicio = new ReporteService();

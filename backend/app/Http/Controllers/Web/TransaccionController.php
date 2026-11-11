@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\TransaccionRequest;
 use App\Models\Oferta;
 use App\Models\Transaccion;
 use App\Services\CompraService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class TransaccionController extends Controller
@@ -27,14 +27,11 @@ class TransaccionController extends Controller
         ]);
     }
 
-    public function store(Request $request, Oferta $oferta): RedirectResponse
+    public function store(TransaccionRequest $request, Oferta $oferta): RedirectResponse
     {
         abort_unless(auth()->user()->esEmpresa() && auth()->user()->estaAprobado(), 403);
 
-        $validated = $request->validate([
-            'peso_real_kg' => ['required', 'numeric', 'gt:0', 'max:999999'],
-            'precio_acordado_kg' => ['nullable', 'numeric', 'gt:0', 'max:999999'],
-        ]);
+        $validated = $request->validated();
 
         $resultado = (new CompraService())->registrar(auth()->user(), $oferta, $validated);
 

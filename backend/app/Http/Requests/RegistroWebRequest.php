@@ -23,8 +23,6 @@ class RegistroWebRequest extends FormRequest
             'direccion' => ['nullable', 'string', 'max:255'],
             'ci' => ['nullable', 'required_if:tipo,ciudadano', 'string', 'max:15', 'unique:ciudadanos,ci'],
             'zona' => ['nullable', 'required_if:tipo,ciudadano', 'string', 'max:150'],
-            'nit' => ['nullable', 'required_if:tipo,empresa', 'string', 'max:20', 'unique:empresas_acopiadoras,nit'],
-            'razon_social' => ['nullable', 'required_if:tipo,empresa', 'string', 'max:150'],
         ];
     }
 
@@ -34,8 +32,6 @@ class RegistroWebRequest extends FormRequest
             'tipo.in' => 'El tipo de cuenta debe ser ciudadano o empresa.',
             'ci.required_if' => 'El carnet de identidad es obligatorio para ciudadanos.',
             'zona.required_if' => 'La zona es obligatoria para ciudadanos.',
-            'nit.required_if' => 'El NIT es obligatorio para empresas.',
-            'razon_social.required_if' => 'La razón social es obligatoria para empresas.',
         ];
     }
 }

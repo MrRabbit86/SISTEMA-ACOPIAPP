@@ -99,7 +99,7 @@
                     @csrf
                     <div>
                         <label for="peso_real_kg" class="mb-1 block text-sm font-medium text-gray-700">Peso real (kg)</label>
-                        <input type="number" step="0.01" min="0.01" required name="peso_real_kg" id="peso_real_kg"
+                        <input type="text" inputmode="decimal" required name="peso_real_kg" id="peso_real_kg"
                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                placeholder="Ej: 45.50" data-compras-peso>
                         @error('peso_real_kg') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -108,7 +108,7 @@
                         <label for="precio_acordado_kg" class="mb-1 block text-sm font-medium text-gray-700">
                             Precio acordado Bs/kg <span class="text-xs text-gray-400">(opcional)</span>
                         </label>
-                        <input type="number" step="0.01" min="0.01" name="precio_acordado_kg" id="precio_acordado_kg"
+                        <input type="text" inputmode="decimal" name="precio_acordado_kg" id="precio_acordado_kg"
                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                placeholder="Bs {{ number_format((float) $oferta->obtenerPrecioReferencia(), 2) }}"
                                data-compras-precio>
