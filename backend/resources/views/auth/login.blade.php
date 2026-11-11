@@ -14,12 +14,11 @@
     <title>Iniciar sesión · Sistema de Reciclaje</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="flex min-h-screen items-center justify-center bg-emerald-900 font-sans text-gray-900">
+<body class="flex min-h-screen items-center justify-center bg-emerald-900 px-4 py-8 font-sans text-gray-900">
     <div class="w-full max-w-md">
-        <div class="mb-6 text-center text-white">
-            <img src="{{ asset('images/login-logo.svg') }}" alt="Reciclaje Zona Sur"
-                 class="mx-auto w-64 max-w-full rounded-xl bg-white px-4 py-3 shadow-xl">
-            <p class="mt-3 text-sm text-emerald-200">Cochabamba · Registro de ofertas y compra-venta</p>
+        <div class="mb-6 text-center">
+            <img src="{{ asset('images/login-logo.png') }}" alt="ACOPIAPP"
+                 class="mx-auto w-72 max-w-full">
         </div>
 
         <div class="rounded-xl bg-white p-8 shadow-xl">
