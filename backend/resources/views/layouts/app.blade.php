@@ -18,11 +18,11 @@
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-900">
     @if (auth()->check())
-        <nav class="bg-emerald-800 text-white shadow">
+        <nav class="bg-emerald-900 text-white shadow">
             <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
                 <div class="flex items-center gap-6">
-                    <a href="{{ route('dashboard') }}" class="flex items-center rounded-lg bg-white px-2.5 py-1.5 shadow-sm transition hover:shadow">
-                        <img src="{{ asset('images/logo.svg') }}" alt="Reciclaje Zona Sur" class="h-8 w-auto">
+                    <a href="{{ route('dashboard') }}" class="flex shrink-0 items-center transition hover:opacity-90">
+                        <img src="{{ asset('images/navbar-logo.png') }}" alt="ACOPIAPP Cochabamba" class="h-10 w-auto">
                     </a>
                     <div class="flex items-center gap-1 text-sm">
                         @if (auth()->user()->esEmpresa() || auth()->user()->esAdmin())
