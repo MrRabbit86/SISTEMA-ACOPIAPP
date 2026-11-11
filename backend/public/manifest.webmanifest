@@ -1,14 +1,14 @@
 {
-    "name": "Reciclaje Zona Sur",
-    "short_name": "Reciclaje",
+    "name": "AcopiaApp",
+    "short_name": "AcopiaApp",
     "description": "Sistema web de registro de ofertas y compra-venta de reciclaje en la Zona Sur de Cochabamba.",
     "lang": "es-BO",
     "start_url": "/dashboard",
     "scope": "/",
     "display": "standalone",
     "orientation": "portrait",
-    "background_color": "#165226",
-    "theme_color": "#165226",
+    "background_color": "#064e3b",
+    "theme_color": "#064e3b",
     "icons": [
         {
             "src": "/icons/icon-192.png",

@@ -1,5 +1,5 @@
 /* Service Worker — Sistema de Reciclaje Zona Sur (PWA ligera). */
-const CACHE = 'reciclaje-v4';
+const CACHE = 'reciclaje-v5';
 const CAPARAZON = [
   '/manifest.json',
   '/offline.html',

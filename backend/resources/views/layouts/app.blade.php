@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Reciclaje">
     <link rel="manifest" href="{{ route('manifest') }}">
-    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+    <link rel="icon" href="/icons/icon-192.png" type="image/png">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <title>@yield('title', 'Sistema de Reciclaje') · Panel</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])

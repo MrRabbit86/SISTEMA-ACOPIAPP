@@ -224,7 +224,7 @@ class RobustezDefectosTest extends TestCase
     {
         $this->assertFileExists(public_path('offline.html'));
         $sw = file_get_contents(public_path('sw.js'));
-        $this->assertStringContainsString('reciclaje-v4', $sw);
+        $this->assertStringContainsString('reciclaje-v5', $sw);
         $this->assertStringContainsString('/offline.html', $sw);
     }
 }
