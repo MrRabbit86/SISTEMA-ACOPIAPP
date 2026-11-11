@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Enums\EstadoOferta;
 use App\Enums\ModalidadEntrega;
+use App\Support\ContactoTelefono;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -25,6 +26,8 @@ class OfertaResource extends JsonResource
             'foto_url' => $this->foto_url ? Storage::disk('public')->url($this->foto_url) : null,
             'fecha_publicacion' => $this->fecha_publicacion?->toISOString(),
             'reservada_hasta' => $this->reservada_hasta?->toISOString(),
+            'llegada_en' => $this->llegada_en?->toISOString(),
+            'google_maps_url' => $this->urlGoogleMaps(),
             'codigo_confirmacion' => $this->when(
                 $request->user() && $this->ciudadano && $this->ciudadano->usuario_id === $request->user()->id,
                 fn () => $this->codigo_confirmacion,
@@ -34,6 +37,10 @@ class OfertaResource extends JsonResource
                     'id' => $this->empresaReservada->id,
                     'nombre' => $this->empresaReservada->name,
                     'telefono' => $this->empresaReservada->telefono,
+                    'whatsapp_url' => ContactoTelefono::urlWhatsapp(
+                        $this->empresaReservada->telefono,
+                        "Hola {$this->empresaReservada->name}, te escribo desde ACOPIAPP por mi oferta #{$this->id}.",
+                    ),
                 ] : null;
             }),
             'ciudadano' => $this->when($this->relationLoaded('ciudadano'), function () {

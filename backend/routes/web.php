@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/listado', [OfertaController::class, 'listado'])->name('ofertas.listado');
             Route::get('/{oferta}', [OfertaController::class, 'show'])->name('ofertas.show');
             Route::post('/{oferta}/reservar', [OfertaController::class, 'reservar'])->name('ofertas.reservar');
+            Route::post('/{oferta}/llegada', [OfertaController::class, 'llegada'])->name('ofertas.llegada');
             Route::post('/{oferta}/liberar', [OfertaController::class, 'liberar'])->name('ofertas.liberar');
         });
 

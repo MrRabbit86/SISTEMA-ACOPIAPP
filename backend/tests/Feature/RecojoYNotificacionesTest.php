@@ -9,6 +9,7 @@ use App\Models\Ciudadano;
 use App\Models\EmpresaAcopiadora;
 use App\Models\Oferta;
 use App\Notifications\NotificacionSistema;
+use App\Support\ContactoTelefono;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -246,5 +247,93 @@ class RecojoYNotificacionesTest extends TestCase
             ->getJson('/api/notificaciones')
             ->assertOk()
             ->assertJsonPath('no_leidas', 0);
+    }
+
+    public function test_empresa_puede_notificar_llegada_al_punto_y_otra_empresa_no_puede(): void
+    {
+        $ciudadano = Ciudadano::factory()->create();
+        $empresa1 = EmpresaAcopiadora::factory()->create();
+        $empresa2 = EmpresaAcopiadora::factory()->create();
+        $oferta = Oferta::factory()->create([
+            'ciudadano_id' => $ciudadano->id,
+            'codigo_confirmacion' => '1234',
+        ]);
+
+        // Pendiente aún no permite marcar llegada
+        $this->actingAs($empresa1->usuario, 'sanctum')
+            ->postJson("/api/ofertas/{$oferta->id}/llegada")
+            ->assertStatus(422);
+
+        // Empresa 1 reserva y luego notifica llegada por Web y API
+        $this->actingAs($empresa1->usuario)->post("/ofertas/{$oferta->id}/reservar")->assertRedirect();
+
+        // Empresa 2 no puede notificar llegada en una reserva ajena
+        $this->actingAs($empresa2->usuario, 'sanctum')
+            ->postJson("/api/ofertas/{$oferta->id}/llegada")
+            ->assertStatus(422);
+
+        $this->actingAs($empresa1->usuario)
+            ->post("/ofertas/{$oferta->id}/llegada")
+            ->assertRedirect();
+
+        $this->assertNotNull($oferta->fresh()->llegada_en);
+        $tipos = $ciudadano->usuario->notifications()->pluck('data')->pluck('tipo');
+        $this->assertTrue($tipos->contains('recojo_reservado'));
+        $this->assertTrue($tipos->contains('empresa_en_punto'));
+    }
+
+    public function test_normalizacion_whatsapp_y_botones_contacto_en_vistas_solo_durante_reserva(): void
+    {
+        $this->assertSame('59175951188', ContactoTelefono::numeroWhatsappBolivia('75951188'));
+        $this->assertSame('59160709411', ContactoTelefono::numeroWhatsappBolivia('+591 60709411'));
+        $this->assertNull(ContactoTelefono::numeroWhatsappBolivia('4220001'));
+        $this->assertSame('tel:+5914220001', ContactoTelefono::urlLlamada('4220001'));
+
+        $ciudadano = Ciudadano::factory()->create();
+        $ciudadano->usuario->update(['telefono' => '60709411']);
+        $empresa = EmpresaAcopiadora::factory()->create();
+        $empresa->usuario->update(['telefono' => '75951188']);
+
+        $oferta = Oferta::factory()->create([
+            'ciudadano_id' => $ciudadano->id,
+            'codigo_confirmacion' => '5544',
+        ]);
+
+        // Empresa ve enlace Google Maps, WhatsApp al ciudadano y botón Reservar
+        $this->actingAs($empresa->usuario)
+            ->get("/ofertas/{$oferta->id}")
+            ->assertOk()
+            ->assertSee('https://wa.me/59160709411', false)
+            ->assertSee('https://www.google.com/maps/search/?api=1', false);
+
+        // Empresa reserva y notifica llegada
+        $this->actingAs($empresa->usuario)->post("/ofertas/{$oferta->id}/reservar")->assertRedirect();
+        $this->actingAs($empresa->usuario)
+            ->get("/ofertas/{$oferta->id}")
+            ->assertOk()
+            ->assertSee('Ya estoy en el punto');
+
+        $this->actingAs($empresa->usuario)->post("/ofertas/{$oferta->id}/llegada")->assertRedirect();
+
+        // Ciudadano en /mis-ofertas ve aviso de llegada y botón WhatsApp a la empresa
+        $this->actingAs($ciudadano->usuario)
+            ->get('/mis-ofertas')
+            ->assertOk()
+            ->assertSee('https://wa.me/59175951188', false)
+            ->assertSee('ya está en tu punto');
+
+        // Al completarse la compra, el botón WhatsApp desaparece de /mis-ofertas por privacidad
+        $this->actingAs($empresa->usuario, 'sanctum')
+            ->postJson('/api/transacciones', [
+                'oferta_id' => $oferta->id,
+                'peso_real_kg' => 15,
+                'codigo_confirmacion' => '5544',
+            ])
+            ->assertStatus(201);
+
+        $this->actingAs($ciudadano->usuario)
+            ->get('/mis-ofertas')
+            ->assertOk()
+            ->assertDontSee('https://wa.me/59175951188', false);
     }
 }

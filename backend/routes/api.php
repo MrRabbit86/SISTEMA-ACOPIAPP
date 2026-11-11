@@ -29,6 +29,7 @@ Route::middleware(['auth:sanctum', 'aprobado'])->group(function () {
         ->names('api.ofertas');
     Route::post('/ofertas/{oferta}/cancelar', [OfertaController::class, 'cancelar']);
     Route::post('/ofertas/{oferta}/reservar', [OfertaController::class, 'reservar']);
+    Route::post('/ofertas/{oferta}/llegada', [OfertaController::class, 'llegada']);
     Route::post('/ofertas/{oferta}/liberar', [OfertaController::class, 'liberar']);
 
     Route::get('/notificaciones', [NotificacionController::class, 'index']);

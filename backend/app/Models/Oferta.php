@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
     'ciudadano_id', 'categoria_id', 'cantidad_estimada_kg', 'descripcion',
     'modalidad_entrega', 'foto_url', 'latitud', 'longitud', 'estado',
     'fecha_publicacion', 'empresa_reservada_id', 'reservada_hasta',
-    'codigo_confirmacion', 'motivo_cierre',
+    'llegada_en', 'codigo_confirmacion', 'motivo_cierre',
 ])]
 class Oferta extends Model
 {
@@ -67,6 +67,7 @@ class Oferta extends Model
                 'estado' => EstadoOferta::PENDIENTE->value,
                 'empresa_reservada_id' => null,
                 'reservada_hasta' => null,
+                'llegada_en' => null,
             ]);
     }
 
@@ -97,6 +98,11 @@ class Oferta extends Model
             : null;
     }
 
+    public function urlGoogleMaps(): string
+    {
+        return "https://www.google.com/maps/search/?api=1&query={$this->latitud},{$this->longitud}";
+    }
+
     protected function casts(): array
     {
         return [
@@ -105,6 +111,7 @@ class Oferta extends Model
             'longitud' => 'decimal:7',
             'fecha_publicacion' => 'datetime',
             'reservada_hasta' => 'datetime',
+            'llegada_en' => 'datetime',
             'estado' => EstadoOferta::class,
             'modalidad_entrega' => ModalidadEntrega::class,
         ];

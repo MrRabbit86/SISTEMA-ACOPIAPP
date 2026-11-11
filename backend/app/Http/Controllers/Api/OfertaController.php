@@ -123,6 +123,23 @@ class OfertaController extends Controller
         ]);
     }
 
+    public function llegada(Oferta $oferta, Request $request): JsonResponse
+    {
+        abort_unless($request->user()?->esEmpresa(), 403,
+            'Solo las empresas acopiadoras pueden notificar llegada.');
+
+        $resultado = (new OfertaService())->marcarLlegada($request->user(), $oferta);
+
+        if ($resultado->mal()) {
+            return response()->json(['message' => $resultado->mensaje()], 422);
+        }
+
+        return response()->json([
+            'message' => 'Llegada al punto de recojo notificada al ciudadano.',
+            'data' => new OfertaResource($resultado->valor()->load(['ciudadano.usuario', 'categoria', 'empresaReservada'])),
+        ]);
+    }
+
     public function liberar(Oferta $oferta, Request $request): JsonResponse
     {
         abort_unless($request->user()?->esEmpresa(), 403,

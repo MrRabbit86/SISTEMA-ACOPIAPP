@@ -159,12 +159,43 @@
                                     </p>
                                 @endif
                                 @if ($oferta->estado->value === 'en_proceso' && $oferta->empresaReservada)
-                                    <p class="mt-1 text-xs text-blue-700">
-                                        En camino: {{ $oferta->empresaReservada->name }}
-                                        @if ($oferta->empresaReservada->telefono)
-                                            · Tel: {{ $oferta->empresaReservada->telefono }}
+                                    @php
+                                        $telEmp = $oferta->empresaReservada->telefono;
+                                        $waEmp = \App\Support\ContactoTelefono::urlWhatsapp(
+                                            $telEmp,
+                                            "Hola {$oferta->empresaReservada->name}, soy ".(auth()->user()?->name ?? 'el vendedor')." de ACOPIAPP por mi oferta #{$oferta->id} de {$oferta->categoria?->nombre}.",
+                                        );
+                                        $telLinkEmp = \App\Support\ContactoTelefono::urlLlamada($telEmp);
+                                    @endphp
+                                    <div class="mt-1.5 space-y-1 text-xs">
+                                        @if ($oferta->llegada_en)
+                                            <p class="inline-block rounded bg-emerald-100 px-1.5 py-0.5 font-semibold text-emerald-900">
+                                                ¡{{ $oferta->empresaReservada->name }} ya está en tu punto! ({{ $oferta->llegada_en->format('H:i') }})
+                                            </p>
+                                        @else
+                                            <p class="text-blue-700">
+                                                En camino: {{ $oferta->empresaReservada->name }}
+                                                @if ($telEmp)
+                                                    · Tel: {{ $telEmp }}
+                                                @endif
+                                            </p>
                                         @endif
-                                    </p>
+                                        @if ($waEmp)
+                                            <div>
+                                                <a href="{{ $waEmp }}" target="_blank" rel="noopener noreferrer"
+                                                   class="inline-flex items-center rounded bg-emerald-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-emerald-700">
+                                                    WhatsApp a la empresa
+                                                </a>
+                                            </div>
+                                        @elseif ($telLinkEmp)
+                                            <div>
+                                                <a href="{{ $telLinkEmp }}"
+                                                   class="inline-flex items-center rounded bg-gray-700 px-2 py-1 text-[11px] font-medium text-white hover:bg-gray-800">
+                                                    Llamar a la empresa
+                                                </a>
+                                            </div>
+                                        @endif
+                                    </div>
                                 @endif
                                 @if ($oferta->estado->value === 'cancelada' && $oferta->motivo_cierre)
                                     <p class="mt-1 text-xs text-red-600">{{ $oferta->motivo_cierre }}</p>

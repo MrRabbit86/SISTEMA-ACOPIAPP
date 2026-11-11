@@ -91,6 +91,21 @@ class OfertaController extends Controller
             ->with('status', 'Recojo reservado por 2 horas. Puedes ver el contacto y dirigirte al punto.');
     }
 
+    public function llegada(Oferta $oferta, Request $request): RedirectResponse
+    {
+        abort_unless($request->user()?->esEmpresa(), 403);
+
+        $resultado = (new OfertaService())->marcarLlegada($request->user(), $oferta);
+
+        if ($resultado->mal()) {
+            return back()->withErrors(['estado' => $resultado->mensaje()]);
+        }
+
+        return redirect()
+            ->route('ofertas.show', $oferta)
+            ->with('status', 'Se notificó al ciudadano que ya te encuentras en el punto de recojo.');
+    }
+
     public function liberar(Oferta $oferta, Request $request): RedirectResponse
     {
         abort_unless($request->user()?->esEmpresa(), 403);

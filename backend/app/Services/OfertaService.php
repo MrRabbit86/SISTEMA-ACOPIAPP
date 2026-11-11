@@ -83,6 +83,7 @@ class OfertaService
                 'estado' => EstadoOferta::EN_PROCESO,
                 'empresa_reservada_id' => $empresa->id,
                 'reservada_hasta' => now()->addHours(self::HORAS_RESERVA),
+                'llegada_en' => null,
                 'motivo_cierre' => null,
             ]);
 
@@ -100,6 +101,48 @@ class OfertaService
                     mensaje: "{$empresa->name} reservó el recojo de tu oferta de {$material}{$tel}.",
                     url: route('mis-ofertas'),
                     tipo: 'recojo_reservado',
+                ));
+            }
+        }
+
+        return $resultado;
+    }
+
+    public function marcarLlegada(User $empresa, Oferta $oferta): Result
+    {
+        Oferta::liberarReservasExpiradas();
+
+        $resultado = DB::transaction(function () use ($empresa, $oferta): Result {
+            $oferta = Oferta::query()->lockForUpdate()->find($oferta->id);
+
+            if (! $oferta || $oferta->estado !== EstadoOferta::EN_PROCESO) {
+                return Result::fail('La oferta no está en proceso de recojo.', 'estado_invalido');
+            }
+
+            if ($oferta->empresa_reservada_id !== $empresa->id) {
+                return Result::fail('Solo la empresa que reservó el recojo puede notificar su llegada.', 'sin_permiso');
+            }
+
+            $oferta->update([
+                'llegada_en' => now(),
+            ]);
+
+            return Result::ok($oferta->fresh());
+        });
+
+        if ($resultado->bien()) {
+            $ofertaActualizada = $resultado->valor()->loadMissing(['categoria', 'ciudadano.usuario']);
+            $dueno = $ofertaActualizada->ciudadano?->usuario;
+            if ($dueno) {
+                $material = $ofertaActualizada->categoria?->nombre ?? 'material';
+                $pin = $ofertaActualizada->codigo_confirmacion
+                    ? " Ten a mano tu código de entrega ({$ofertaActualizada->codigo_confirmacion})."
+                    : '';
+                $dueno->notify(new NotificacionSistema(
+                    titulo: 'La empresa llegó al punto de recojo',
+                    mensaje: "{$empresa->name} ya se encuentra en el punto para recoger {$material}.{$pin}",
+                    url: route('mis-ofertas'),
+                    tipo: 'empresa_en_punto',
                 ));
             }
         }
@@ -130,6 +173,7 @@ class OfertaService
                 'estado' => $nuevoEstado,
                 'empresa_reservada_id' => null,
                 'reservada_hasta' => null,
+                'llegada_en' => null,
                 'motivo_cierre' => mb_substr($detalle, 0, 255),
             ]);
 
@@ -174,6 +218,7 @@ class OfertaService
                 'estado' => EstadoOferta::CANCELADA,
                 'empresa_reservada_id' => null,
                 'reservada_hasta' => null,
+                'llegada_en' => null,
             ]);
 
             return Result::ok($oferta);

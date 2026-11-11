@@ -77,11 +77,47 @@
                         <dd class="font-medium">{{ $oferta->ciudadano?->usuario?->telefono ?? '—' }}</dd>
                     </div>
                 </dl>
+                @php
+                    $telCiudadano = $oferta->ciudadano?->usuario?->telefono;
+                    $puedeContactarCiudadano = in_array($oferta->estado->value, ['pendiente', 'en_proceso'], true)
+                        && (! $oferta->empresa_reservada_id || $oferta->empresa_reservada_id === auth()->id());
+                    $waCiudadano = $puedeContactarCiudadano
+                        ? \App\Support\ContactoTelefono::urlWhatsapp(
+                            $telCiudadano,
+                            "Hola {$oferta->ciudadano?->usuario?->name}, soy de ".auth()->user()?->name." (ACOPIAPP). Te escribo por tu oferta #{$oferta->id} de {$oferta->categoria?->nombre}.",
+                        )
+                        : null;
+                    $telLinkCiudadano = $puedeContactarCiudadano
+                        ? \App\Support\ContactoTelefono::urlLlamada($telCiudadano)
+                        : null;
+                @endphp
+                @if ($waCiudadano || $telLinkCiudadano)
+                    <div class="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-3">
+                        @if ($waCiudadano)
+                            <a href="{{ $waCiudadano }}" target="_blank" rel="noopener noreferrer"
+                               class="inline-flex items-center rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700">
+                                WhatsApp al ciudadano
+                            </a>
+                        @elseif ($telLinkCiudadano)
+                            <a href="{{ $telLinkCiudadano }}"
+                               class="inline-flex items-center rounded-md bg-gray-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800">
+                                Llamar al ciudadano
+                            </a>
+                        @endif
+                    </div>
+                @endif
             </div>
         </div>
 
         <div class="rounded-lg bg-white p-4 shadow ring-1 ring-gray-200">
             <div id="mapa" class="h-[400px] w-full rounded-md"></div>
+            <div class="mt-3 flex items-center justify-between text-xs text-gray-500">
+                <span>Ubicación del material</span>
+                <a href="{{ $oferta->urlGoogleMaps() }}" target="_blank" rel="noopener noreferrer"
+                   class="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-medium text-emerald-800 hover:bg-emerald-100">
+                    Abrir en Google Maps &rarr;
+                </a>
+            </div>
         </div>
     </div>
 
@@ -137,6 +173,31 @@
                                 Vigente hasta {{ $oferta->reservada_hasta?->format('d/m/Y H:i') }}.
                                 Pide al ciudadano el código de entrega de 4 dígitos al pesar el material para registrar la compra.
                             </p>
+                            @if ($oferta->llegada_en)
+                                <p class="mt-1.5 inline-block rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-900">
+                                    Llegada notificada al ciudadano a las {{ $oferta->llegada_en->format('H:i') }}
+                                </p>
+                            @endif
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <form method="POST" action="{{ route('ofertas.llegada', $oferta) }}">
+                                @csrf
+                                <button type="submit"
+                                        class="rounded-md bg-blue-700 px-3.5 py-2 text-xs font-medium text-white hover:bg-blue-800">
+                                    {{ $oferta->llegada_en ? 'Volver a avisar llegada' : 'Ya estoy en el punto' }}
+                                </button>
+                            </form>
+                            @if ($waCiudadano)
+                                <a href="{{ $waCiudadano }}" target="_blank" rel="noopener noreferrer"
+                                   class="rounded-md bg-emerald-600 px-3.5 py-2 text-xs font-medium text-white hover:bg-emerald-700">
+                                    WhatsApp al ciudadano
+                                </a>
+                            @elseif ($telLinkCiudadano)
+                                <a href="{{ $telLinkCiudadano }}"
+                                   class="rounded-md bg-gray-700 px-3.5 py-2 text-xs font-medium text-white hover:bg-gray-800">
+                                    Llamar
+                                </a>
+                            @endif
                         </div>
                     </div>
                     <form method="POST" action="{{ route('ofertas.liberar', $oferta) }}"
