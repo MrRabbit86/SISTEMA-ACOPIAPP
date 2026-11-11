@@ -114,7 +114,9 @@ class WebTest extends TestCase
         $this->get('/login')
             ->assertOk()
             ->assertDontSee('name="nit"', false)
-            ->assertDontSee('name="razon_social"', false);
+            ->assertDontSee('name="razon_social"', false)
+            ->assertSee('Instala AcopiaApp en tu celular')
+            ->assertSee('Agregar a pantalla de inicio');
     }
 
     public function test_raiz_redirige_a_login_sin_autenticar(): void

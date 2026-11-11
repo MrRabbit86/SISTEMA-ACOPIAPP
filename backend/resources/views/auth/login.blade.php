@@ -151,6 +151,8 @@
         </div>
     </div>
 
+    <x-pwa-install-banner />
+
     <script>
         function cambiarPestana(pestana) {
             const esLogin = pestana === 'login';

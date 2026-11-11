@@ -79,6 +79,8 @@
         @yield('content')
     </main>
 
+    <x-pwa-install-banner />
+
     @stack('scripts')
 </body>
 </html>
