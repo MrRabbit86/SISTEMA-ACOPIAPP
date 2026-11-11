@@ -5,6 +5,11 @@ cd /var/www/html
 
 export PORT="${PORT:-8080}"
 
+a2dismod mpm_event mpm_worker >/dev/null 2>&1 || true
+a2enmod mpm_prefork >/dev/null 2>&1 || true
+printf 'Listen %s\n' "$PORT" > /etc/apache2/ports.conf
+sed -i "s/<VirtualHost \*:[0-9${}A-Za-z_]*>/<VirtualHost *:${PORT}>/" /etc/apache2/sites-available/000-default.conf
+
 mkdir -p \
     storage/app/public/ofertas \
     storage/framework/cache/data \
