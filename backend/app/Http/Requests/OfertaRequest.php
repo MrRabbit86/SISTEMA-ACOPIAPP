@@ -41,7 +41,7 @@ class OfertaRequest extends FormRequest
             'longitud' => ['required', 'numeric', 'between:'.Geolocalizacion::LNG_MIN.','.Geolocalizacion::LNG_MAX],
             'descripcion' => ['nullable', 'string', 'max:255'],
             'modalidad_entrega' => ['nullable', Rule::in(array_column(ModalidadEntrega::cases(), 'value'))],
-            'foto' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'foto' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ];
     }
 
@@ -58,7 +58,7 @@ class OfertaRequest extends FormRequest
             'longitud.between' => 'Las coordenadas están fuera de la Zona Sur de Cochabamba.',
             'modalidad_entrega.in' => 'La modalidad de entrega no es válida.',
             'foto.image' => 'La foto debe ser una imagen.',
-            'foto.max' => 'La foto no puede superar los 2 MB.',
+            'foto.max' => 'La foto no puede superar los 10 MB.',
         ];
     }
 }

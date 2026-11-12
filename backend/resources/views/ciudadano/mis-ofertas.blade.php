@@ -64,6 +64,7 @@
                     <label for="foto" class="mb-1 block text-sm font-medium">Foto del material (opcional)</label>
                     <input type="file" name="foto" id="foto" accept="image/jpeg,image/png,image/webp"
                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-emerald-700 focus:border-emerald-500 focus:outline-none">
+                    <p id="foto-estado" class="mt-1 hidden text-xs font-medium"></p>
                 </div>
 
                 <div>
@@ -361,6 +362,82 @@
                     ? { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                     : { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
             );
+        }
+
+        // Compresor automático de fotos del cliente (reduce fotos pesadas de cámara móvil de 5-10MB a ~300KB)
+        const fotoInput = document.getElementById('foto');
+        const fotoEstado = document.getElementById('foto-estado');
+
+        if (fotoInput) {
+            fotoInput.addEventListener('change', function (e) {
+                const file = e.target.files && e.target.files[0];
+                if (!file || !file.type.startsWith('image/')) {
+                    if (fotoEstado) fotoEstado.classList.add('hidden');
+                    return;
+                }
+
+                const tamOriginalMB = (file.size / (1024 * 1024)).toFixed(2);
+                if (fotoEstado) {
+                    fotoEstado.classList.remove('hidden', 'text-red-600', 'text-emerald-700');
+                    fotoEstado.classList.add('text-gray-500');
+                    fotoEstado.textContent = `Optimizando imagen (${tamOriginalMB} MB)…`;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const img = new Image();
+                    img.onload = function () {
+                        const maxDimension = 1600;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxDimension || height > maxDimension) {
+                            if (width > height) {
+                                height = Math.round((height * maxDimension) / width);
+                                width = maxDimension;
+                            } else {
+                                width = Math.round((width * maxDimension) / height);
+                                height = maxDimension;
+                            }
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob(function (blob) {
+                            if (!blob) {
+                                if (fotoEstado) fotoEstado.classList.add('hidden');
+                                return;
+                            }
+                            const nombreLimpio = (file.name || 'foto.jpg').replace(/\.[^/.]+$/, "") + ".jpg";
+                            const comprimido = new File([blob], nombreLimpio, { type: 'image/jpeg' });
+
+                            try {
+                                const dataTransfer = new DataTransfer();
+                                dataTransfer.items.add(comprimido);
+                                fotoInput.files = dataTransfer.files;
+                            } catch (err) {
+                                console.warn('DataTransfer no soportado en este navegador:', err);
+                            }
+
+                            const tamFinalKB = (comprimido.size / 1024).toFixed(0);
+                            if (fotoEstado) {
+                                fotoEstado.classList.remove('text-gray-500', 'text-red-600');
+                                fotoEstado.classList.add('text-emerald-700');
+                                fotoEstado.textContent = `✓ Foto optimizada para envío rápido: ${tamOriginalMB} MB → ${tamFinalKB} KB`;
+                            }
+                        }, 'image/jpeg', 0.82);
+                    };
+                    img.onerror = function () {
+                        if (fotoEstado) fotoEstado.classList.add('hidden');
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
         }
     </script>
 @endpush

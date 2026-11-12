@@ -92,8 +92,9 @@
                         </select>
                     </div>
                     <div>
-                        <label for="reg-name" class="mb-1 block text-sm font-medium">Nombre completo</label>
+                        <label for="reg-name" id="reg-name-label" class="mb-1 block text-sm font-medium">{{ old('tipo') === 'empresa' ? 'Nombre de la empresa o centro de acopio' : 'Nombre completo' }}</label>
                         <input type="text" name="name" id="reg-name" value="{{ old('name') }}" required
+                               placeholder="{{ old('tipo') === 'empresa' ? 'Ej: Recicladora San Miguel / EcoSur' : 'Ej: Juan Pérez' }}"
                                class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                     </div>
                     <div>
@@ -185,6 +186,19 @@
             const zona = document.getElementById('reg-zona');
             ci.required = !esEmpresa;
             zona.required = !esEmpresa;
+
+            const nameLabel = document.getElementById('reg-name-label');
+            const nameInput = document.getElementById('reg-name');
+            if (nameLabel) {
+                nameLabel.textContent = esEmpresa
+                    ? 'Nombre de la empresa o centro de acopio'
+                    : 'Nombre completo';
+            }
+            if (nameInput) {
+                nameInput.placeholder = esEmpresa
+                    ? 'Ej: Recicladora San Miguel / EcoSur'
+                    : 'Ej: Juan Pérez';
+            }
 
             document.getElementById('reg-submit').textContent = esEmpresa
                 ? 'Registrar empresa'
