@@ -105,6 +105,7 @@
     </main>
 
     <x-pwa-install-banner />
+    <x-validacion-numerica />
 
     @if (auth()->check())
         <div id="toast-container" class="pointer-events-none fixed right-4 top-16 z-50 flex w-full max-w-sm flex-col gap-2"></div>

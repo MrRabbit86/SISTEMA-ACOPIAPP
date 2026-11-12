@@ -39,17 +39,18 @@
             </div>
             <div>
                 <label class="mb-1 block text-xs font-medium text-gray-600">Radio (km)</label>
-                <input type="number" name="radio" min="1" max="50" value="{{ $filtros['radio'] }}"
+                <input type="number" name="radio" min="1" max="50" step="1" value="{{ $filtros['radio'] }}"
+                       data-solo-enteros
                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
             </div>
             <div>
                 <label class="mb-1 block text-xs font-medium text-gray-600">Latitud</label>
-                <input type="text" name="lat" value="{{ $filtros['lat'] }}"
+                <input type="text" name="lat" value="{{ $filtros['lat'] }}" data-solo-coord
                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
             </div>
             <div>
                 <label class="mb-1 block text-xs font-medium text-gray-600">Longitud</label>
-                <input type="text" name="lng" value="{{ $filtros['lng'] }}"
+                <input type="text" name="lng" value="{{ $filtros['lng'] }}" data-solo-coord
                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
             </div>
             <div class="col-span-2 md:col-span-5 md:justify-self-end">

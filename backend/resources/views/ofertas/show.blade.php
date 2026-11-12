@@ -239,7 +239,7 @@
                     <div>
                         <label for="peso_real_kg" class="mb-1 block text-sm font-medium text-gray-700">Peso real (kg)</label>
                         <input type="text" inputmode="decimal" required name="peso_real_kg" id="peso_real_kg"
-                               value="{{ old('peso_real_kg') }}"
+                               value="{{ old('peso_real_kg') }}" data-solo-decimal
                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                placeholder="Ej: 45.50" data-compras-peso>
                         @error('peso_real_kg') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
@@ -249,7 +249,7 @@
                             Precio acordado Bs/kg <span class="text-xs text-gray-400">(opcional)</span>
                         </label>
                         <input type="text" inputmode="decimal" name="precio_acordado_kg" id="precio_acordado_kg"
-                               value="{{ old('precio_acordado_kg') }}"
+                               value="{{ old('precio_acordado_kg') }}" data-solo-decimal
                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                placeholder="Bs {{ number_format((float) $oferta->obtenerPrecioReferencia(), 2) }}"
                                data-compras-precio>
@@ -260,7 +260,7 @@
                             Código de entrega del ciudadano (4 dígitos)
                         </label>
                         <input type="text" inputmode="numeric" maxlength="4" pattern="\d{4}"
-                               name="codigo_confirmacion" id="codigo_confirmacion"
+                               name="codigo_confirmacion" id="codigo_confirmacion" data-solo-enteros
                                value="{{ old('codigo_confirmacion') }}" required
                                class="w-40 rounded-md border-gray-300 font-mono text-base tracking-widest shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
                                placeholder="Ej: 4821">

@@ -105,6 +105,8 @@
                         <div>
                             <label for="reg-ci" class="mb-1 block text-sm font-medium">Carnet de identidad</label>
                             <input type="text" name="ci" id="reg-ci" value="{{ old('ci') }}"
+                                   inputmode="numeric" minlength="5" maxlength="12" pattern="\d{5,12}"
+                                   data-solo-enteros placeholder="Solo números"
                                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
                         <div>
@@ -127,7 +129,8 @@
                         <div>
                             <label for="reg-telefono" class="mb-1 block text-sm font-medium">Teléfono</label>
                             <input type="text" name="telefono" id="reg-telefono" value="{{ old('telefono') }}"
-                                   inputmode="tel" minlength="7" maxlength="20" required
+                                   inputmode="numeric" minlength="7" maxlength="15" pattern="\d{7,15}"
+                                   data-solo-enteros placeholder="Ej: 75951188" required
                                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
                         <div>
@@ -152,6 +155,7 @@
     </div>
 
     <x-pwa-install-banner />
+    <x-validacion-numerica />
 
     <script>
         function cambiarPestana(pestana) {

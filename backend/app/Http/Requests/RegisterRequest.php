@@ -20,9 +20,9 @@ class RegisterRequest extends FormRequest
             'email' => ['required', 'string', 'email', 'max:100', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
             'rol' => ['required', Rule::in([Rol::CIUDADANO, Rol::EMPRESA])],
-            'telefono' => ['required', 'string', 'min:7', 'max:20'],
+            'telefono' => ['required', 'string', 'regex:/^\d{7,15}$/'],
             'direccion' => ['nullable', 'string', 'max:255'],
-            'ci' => ['nullable', 'required_if:rol,ciudadano', 'string', 'max:15', 'unique:ciudadanos,ci'],
+            'ci' => ['nullable', 'required_if:rol,ciudadano', 'string', 'regex:/^\d{5,12}$/', 'unique:ciudadanos,ci'],
             'zona' => ['nullable', 'string', 'max:150'],
         ];
     }
@@ -31,7 +31,9 @@ class RegisterRequest extends FormRequest
     {
         return [
             'ci.required_if' => 'El carnet de identidad es obligatorio para ciudadanos.',
+            'ci.regex' => 'El carnet de identidad debe contener solo dígitos (5 a 12 números, sin letras ni espacios).',
             'telefono.required' => 'El número de teléfono es obligatorio.',
+            'telefono.regex' => 'El teléfono debe contener solo dígitos (7 a 15 números, sin letras ni espacios).',
             'rol.in' => 'El rol debe ser ciudadano o empresa.',
         ];
     }

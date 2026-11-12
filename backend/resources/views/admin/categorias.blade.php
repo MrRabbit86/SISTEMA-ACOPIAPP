@@ -26,6 +26,7 @@
                 <div>
                     <label class="mb-1 block text-sm font-medium">Precio de referencia (Bs/kg)</label>
                     <input type="text" inputmode="decimal" name="precio_referencia_kg" placeholder="Ej: 2.50" required
+                           data-solo-decimal
                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                 </div>
                 <button type="submit"

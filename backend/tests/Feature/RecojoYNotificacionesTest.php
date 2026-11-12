@@ -336,4 +336,49 @@ class RecojoYNotificacionesTest extends TestCase
             ->assertOk()
             ->assertDontSee('https://wa.me/59175951188', false);
     }
+
+    public function test_validaciones_estrictas_rechazan_letras_espacios_y_fechas_fuera_de_rango(): void
+    {
+        // Registro web rechaza letras o espacios en teléfono y CI
+        $this->post('/login/registrar', [
+            'tipo' => 'ciudadano',
+            'name' => 'Test Usuario',
+            'email' => 'val1@reciclaje.bo',
+            'password' => 'secreto123',
+            'password_confirmation' => 'secreto123',
+            'telefono' => '7595 1188',
+            'ci' => '1234abc',
+            'zona' => 'Zona Sur',
+        ])->assertSessionHasErrors(['telefono', 'ci']);
+
+        // Registro API rechaza letras en teléfono y CI
+        $this->postJson('/api/auth/register', [
+            'name' => 'Test API',
+            'email' => 'val2@reciclaje.bo',
+            'password' => 'secreto123',
+            'rol' => 'ciudadano',
+            'telefono' => '7595abcd',
+            'ci' => '9876 543',
+        ])->assertStatus(422)->assertJsonValidationErrors(['telefono', 'ci']);
+
+        $ciudadano = Ciudadano::factory()->create();
+        $categoria = CategoriaMaterial::factory()->create();
+        $empresa = EmpresaAcopiadora::factory()->create();
+
+        // Oferta rechaza letras, espacios internos y más de 2 decimales
+        $this->actingAs($ciudadano->usuario, 'sanctum')
+            ->postJson('/api/ofertas', [
+                'categoria_id' => $categoria->id,
+                'cantidad_estimada_kg' => '12.345',
+                'latitud' => -17.4200,
+                'longitud' => -66.1700,
+            ])->assertStatus(422)->assertJsonValidationErrors(['cantidad_estimada_kg']);
+
+        // Reportes rechaza fechas futuras y anteriores a 2020
+        $manana = now()->addDay()->toDateString();
+        $this->actingAs($empresa->usuario, 'sanctum')
+            ->getJson("/api/reportes?desde=2019-12-31&hasta={$manana}")
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['desde', 'hasta']);
+    }
 }

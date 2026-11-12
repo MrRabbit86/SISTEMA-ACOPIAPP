@@ -40,6 +40,7 @@
                     <label for="cantidad_estimada_kg" class="mb-1 block text-sm font-medium">Peso aproximado (kg)</label>
                     <input type="text" inputmode="decimal" name="cantidad_estimada_kg" id="cantidad_estimada_kg"
                            value="{{ old('cantidad_estimada_kg') }}" placeholder="Ej: 12.50" required
+                           data-solo-decimal
                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                 </div>
 
@@ -85,11 +86,13 @@
                         <div>
                             <input type="text" name="latitud" id="latitud" inputmode="decimal"
                                    value="{{ old('latitud') }}" placeholder="Latitud (-17.5 a -17.2)" required
+                                   data-solo-coord
                                    class="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
                         <div>
                             <input type="text" name="longitud" id="longitud" inputmode="decimal"
                                    value="{{ old('longitud') }}" placeholder="Longitud (-66.3 a -66.0)" required
+                                   data-solo-coord
                                    class="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500">
                         </div>
                     </div>

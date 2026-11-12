@@ -16,16 +16,24 @@
         </a>
     </div>
 
+    @if ($errors->any())
+        <div class="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
+            {{ $errors->first() }}
+        </div>
+    @endif
+
     <div class="mb-6 rounded-lg bg-white p-4 shadow">
         <form method="GET" action="{{ route('reportes.index') }}" class="flex flex-wrap items-end gap-4">
             <div>
                 <label class="mb-1 block text-xs font-medium text-gray-600">Desde</label>
                 <input type="date" name="desde" value="{{ $desde }}"
+                       min="2020-01-01" max="{{ now()->toDateString() }}"
                        class="rounded-md border border-gray-300 px-3 py-2 text-sm">
             </div>
             <div>
                 <label class="mb-1 block text-xs font-medium text-gray-600">Hasta</label>
                 <input type="date" name="hasta" value="{{ $hasta }}"
+                       min="2020-01-01" max="{{ now()->toDateString() }}"
                        class="rounded-md border border-gray-300 px-3 py-2 text-sm">
             </div>
             <button type="submit"

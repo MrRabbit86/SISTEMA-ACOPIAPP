@@ -19,9 +19,9 @@ class RegistroWebRequest extends FormRequest
             'name' => ['required', 'string', 'max:150'],
             'email' => ['required', 'string', 'email', 'max:100', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'telefono' => ['required', 'string', 'min:7', 'max:20'],
+            'telefono' => ['required', 'string', 'regex:/^\d{7,15}$/'],
             'direccion' => ['nullable', 'string', 'max:255'],
-            'ci' => ['nullable', 'required_if:tipo,ciudadano', 'string', 'max:15', 'unique:ciudadanos,ci'],
+            'ci' => ['nullable', 'required_if:tipo,ciudadano', 'string', 'regex:/^\d{5,12}$/', 'unique:ciudadanos,ci'],
             'zona' => ['nullable', 'required_if:tipo,ciudadano', 'string', 'max:150'],
         ];
     }
@@ -31,8 +31,10 @@ class RegistroWebRequest extends FormRequest
         return [
             'tipo.in' => 'El tipo de cuenta debe ser ciudadano o empresa.',
             'ci.required_if' => 'El carnet de identidad es obligatorio para ciudadanos.',
+            'ci.regex' => 'El carnet de identidad debe contener solo dígitos (5 a 12 números, sin letras ni espacios).',
             'zona.required_if' => 'La zona es obligatoria para ciudadanos.',
             'telefono.required' => 'El número de teléfono es obligatorio.',
+            'telefono.regex' => 'El teléfono debe contener solo dígitos (7 a 15 números, sin letras ni espacios).',
         ];
     }
 }
